@@ -1,0 +1,29 @@
+{
+  "name": "travel-companion",
+  "version": "0.1.0",
+  "bin": {
+    "bedrock-agent-cdk": "bin/bedrock-agent-cdk.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "watch": "tsc -w",
+    "test": "jest",
+    "cdk": "cdk"
+  },
+  "devDependencies": {
+    "@types/jest": "^29.5.12",
+    "@types/node": "20.11.19",
+    "jest": "^29.7.0",
+    "ts-jest": "^29.1.2",
+    "aws-cdk": "2.130.0",
+    "ts-node": "^10.9.2",
+    "typescript": "~5.3.3",
+    "glob": "^10.3.10",
+    "bedrock-agents-cdk": "^0.0.9"
+  },
+  "dependencies": {
+    "aws-cdk-lib": "2.130.0",
+    "constructs": "^10.0.0",
+    "source-map-support": "^0.5.21"
+  }
+}

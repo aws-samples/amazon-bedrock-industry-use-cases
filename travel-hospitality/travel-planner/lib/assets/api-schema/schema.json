@@ -1,0 +1,247 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Travel Planner Bot API",
+    "description": "Travel Planner API for searching the best flight and hotel deals",
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "/"
+    }
+  ],
+  "paths": {
+    "/get_flights": {
+      "get": {
+        "summary": "GET /get_flights",
+        "description": "Gets best flight results from Google Flights",
+        "operationId": "get_flights_get_flights_get",
+        "parameters": [
+          {
+            "description": "Parameter defines the departure airport code or location kgmid. An airport code is an uppercase 3-letter code. For example, CDG is Paris Charles de Gaulle Airport and AUS is Austin-Bergstrom International Airport.",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Departure Id",
+              "description": "Parameter defines the departure airport code or location kgmid. An airport code is an uppercase 3-letter code. For example, CDG is Paris Charles de Gaulle Airport and AUS is Austin-Bergstrom International Airport."
+            },
+            "name": "departure_id",
+            "in": "query"
+          },
+          {
+            "description": "Parameter defines the arrival airport code or location kgmid. An airport code is an uppercase 3-letter code. For example, CDG is Paris Charles de Gaulle Airport and AUS is Austin-Bergstrom International Airport.",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Arrival Id",
+              "description": "Parameter defines the arrival airport code or location kgmid. An airport code is an uppercase 3-letter code. For example, CDG is Paris Charles de Gaulle Airport and AUS is Austin-Bergstrom International Airport."
+            },
+            "name": "arrival_id",
+            "in": "query"
+          },
+          {
+            "description": "Parameter defines the outbound date. The format is YYYY-MM-DD. e.g. 2024-02-08",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Outbound Date",
+              "description": "Parameter defines the outbound date. The format is YYYY-MM-DD. e.g. 2024-02-08"
+            },
+            "name": "outbound_date",
+            "in": "query"
+          },
+          {
+            "description": "Parameter defines the return date. The format is YYYY-MM-DD. e.g. 2024-02-08",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Return Date",
+              "description": "Parameter defines the return date. The format is YYYY-MM-DD. e.g. 2024-02-08"
+            },
+            "name": "return_date",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "type": "object"
+                  },
+                  "type": "array",
+                  "title": "Return"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/get_hotels": {
+      "get": {
+        "summary": "GET /get_hotels",
+        "description": "Gets hotels properties from Google Hotels",
+        "operationId": "get_hotels_get_hotels_get",
+        "parameters": [
+          {
+            "description": "Parameter defines the location. e.g. Bali Resorts",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Q",
+              "description": "Parameter defines the location. e.g. Bali Resorts"
+            },
+            "name": "q",
+            "in": "query"
+          },
+          {
+            "description": "Parameter defines the check-in date. The format is YYYY-MM-DD. e.g. 2024-02-10",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Check In Date",
+              "description": "Parameter defines the check-in date. The format is YYYY-MM-DD. e.g. 2024-02-10"
+            },
+            "name": "check_in_date",
+            "in": "query"
+          },
+          {
+            "description": "Parameter defines the check-out date. The format is YYYY-MM-DD. e.g. 2024-02-10",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Check Out Date",
+              "description": "Parameter defines the check-out date. The format is YYYY-MM-DD. e.g. 2024-02-10"
+            },
+            "name": "check_out_date",
+            "in": "query"
+          },
+          {
+            "description": "Parameter defines the number of adults",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "title": "Adults",
+              "description": "Parameter defines the number of adults",
+              "default": ""
+            },
+            "name": "adults",
+            "in": "query"
+          },
+          {
+            "description": "Parameter defines the country to use for the Google Hotels search. It's a two-letter country code. (e.g., us for the United States, uk for United Kingdom, or fr for France) Head to the Google countries page for a full list of supported Google countries.",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "title": "Country Search",
+              "description": "Parameter defines the country to use for the Google Hotels search. It's a two-letter country code. (e.g., us for the United States, uk for United Kingdom, or fr for France) Head to the Google countries page for a full list of supported Google countries.",
+              "default": "us"
+            },
+            "name": "country_search",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "type": "object"
+                  },
+                  "type": "array",
+                  "title": "Return"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
+      }
+    }
+  },
+  "tags": [
+    {
+      "name": "travel"
+    },
+    {
+      "name": "flights"
+    },
+    {
+      "name": "hotels"
+    }
+  ]
+}
