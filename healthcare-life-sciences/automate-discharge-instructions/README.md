@@ -7,6 +7,11 @@
 - [Armando Diaz](https://www.linkedin.com/in/armando-diaz-47a498113/) @armdiazg 
 - [Marco Punio](https://www.linkedin.com/in/marcpunio/) @puniomp
 
+This guide details how to install, configure, and use an [Agent for Amazon Bedrock](https://aws.amazon.com/bedrock/agents/) that will use an example patient API and an example [Knowledge Bases for Amazon Bedrock](https://aws.amazon.com/bedrock/knowledge-bases/) to take in promps like `generate discharge instructions for [patient-id] and [diagnostic]` and consult both the example API and Knowledge Base to generate discharge instructions based on a provided template.
+
+Example promopt and response is available in details on instructions below.
+
+
 # Prerequisites
 ===============
 
@@ -121,8 +126,22 @@
     Model response
 
     ```
-    Discharge Summary Patient Name: PAT-0001 Date of Birth: N/A Primary Diagnostic: acne Acne is a medical condition that occurs when pores on the surface of the skin become plugged. A pore is an opening of a hair follicle (root) and an oil gland. Pores get blocked when the glands make too much oil. Dirt collects, which causes bacteria to grow in the glands. The skin swells and forms painful bumps, commonly called pimples.[1] Topical medicine: These medicines include gels, ointments, creams, pastes, or liquid solutions that are put on your skin. They help decrease swelling and skin shedding. Hormone medicine: These medicines help control the production of oil from the oil glands. Birth control pills are an example of hormone medicine. Acne medicine: These are vitamin-based medicines, which are most useful in treating severe acne. These medicines may have serious side effects. You must not get pregnant or breastfeed while you are using this medicine. Steroids: This medicine may be given to decrease inflammation.[2] Be gentle when you wash: Do not rub or scrub your skin with a washcloth. Do not use hot water. Gently pat your skin dry with a clean towel or cloth. Be careful with the medicines you are taking: Certain medicines, including natural and herbal medicines, may trigger an acne flare-up. Always check for skin changes when you take your medicines. Ask your primary healthcare provider before you use herbal medicines or products to control acne. Do not squeeze, pop, or pick your pimples: This may damage your skin and cause infection or scarring. Protect your skin from the sun: Wear sunscreen that has a sun protectant factor (SPF) approved by your primary healthcare provider. Follow the directions on the label when you use sunscreen. Use water-based, oil-free makeup, soaps, or skin cleansers: Oil-based makeup may make acne worse. Check product labels on water-based makeup, since even these may have some added oil.[3] Contact your primary healthcare provider dermatologist if: - Your acne is not getting better or gets worse after treatment. - You think you are pregnant and need to make sure it is safe to take your acne medicine. - You have questions about your condition or care.[4]
-
+    Discharge Summary
+    
+    Patient Name: <name on database>
+    Date of Birth: <date of birth on database>
+    Primary Diagnostic: Acne
+    
+    Acne is a medical condition that occurs when pores on the surface of the skin become plugged. A pore is an opening of a hair follicle (root) and an oil gland. Pores get blocked when the glands make too much oil. Dirt collects, which causes bacteria to grow in the glands. The skin swells and forms painful bumps, commonly called pimples.[1]
+    
+    Topical medicine: These medicines include gels, ointments, creams, pastes, or liquid solutions that are put on your skin. They help decrease swelling and skin shedding. Hormone medicine: These medicines help control the production of oil from the oil glands. Birth control pills are an example of hormone medicine. Acne medicine: These are vitamin-based medicines, which are most useful in treating severe acne. These medicines may have serious side effects. You must not get pregnant or breastfeed while you are using this medicine. Steroids: This medicine may be given to decrease inflammation.[2]
+    
+    Be gentle when you wash: Do not rub or scrub your skin with a washcloth. Do not use hot water. Gently pat your skin dry with a clean towel or cloth. Be careful with the medicines you are taking: Certain medicines, including natural and herbal medicines, may trigger an acne flare-up. Always check for skin changes when you take your medicines. Ask your primary healthcare provider before you use herbal medicines or products to control acne. Do not squeeze, pop, or pick your pimples: This may damage your skin and cause infection or scarring. Protect your skin from the sun: Wear sunscreen that has a sun protectant factor (SPF) approved by your primary healthcare provider. Follow the directions on the label when you use sunscreen. Use water-based, oil-free makeup, soaps, or skin cleansers: Oil-based makeup may make acne worse. Check product labels on water-based makeup, since even these may have some added oil.[3]
+    
+    Contact your primary healthcare provider dermatologist if:
+     - Your acne is not getting better or gets worse after treatment.
+     - You think you are pregnant and need to make sure it is safe to take your acne medicine.
+     - You have questions about your condition or care.[4]
     ```
 
 # How to delete
