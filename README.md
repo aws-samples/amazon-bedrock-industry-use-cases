@@ -5,7 +5,7 @@ This repository contains pre-built examples to help developers get started with 
 ## Contents
 
 - [Healthcare Life Sciences](healthcare-life-sciences)
-    - [Automate Discharge Instructions](healthcare-life-sciences/automate-discharge-instructions) - An agent designed to help with patient discharge instructions
+    - [Automate Discharge Instructions](healthcare-life-sciences/automate-discharge-instructions) - An agent designed to generate discharge instructions for a given patient and medical diagnosis
 - [Travel & Hospitality](travel-hospitality)
     - [Travel Planner](travel-hospitality/travel-planner) - An agent designed to help with finding the best flights, hotels, and plan vacations
 
