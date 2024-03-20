@@ -9,7 +9,7 @@
 
 This guide details how to install, configure, and use an [Agent for Amazon Bedrock](https://aws.amazon.com/bedrock/agents/) that will use an example patient API and an example [Knowledge Bases for Amazon Bedrock](https://aws.amazon.com/bedrock/knowledge-bases/) to take in promps like `generate discharge instructions for [patient-id] and [diagnostic]` and consult both the example API and Knowledge Base to generate discharge instructions based on a provided template.
 
-Example promopt and response is available in details on instructions below.
+Example prompt and response is available in details on instructions below.
 
 
 # Prerequisites
