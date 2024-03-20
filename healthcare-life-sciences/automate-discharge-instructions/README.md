@@ -104,7 +104,7 @@ Example prompt and response is available in details on instructions below.
 6. Paste the sample prompt provided below and click '*Run*'
 
     ```
-    Write a discharge report for the patient PAT-0001 and diagnostic 'acne'.
+    Write a discharge report for the patient 'PAT-0001' and diagnostic 'acne'.
 
     Utilize the following template to write this report, make sure you add all the information required and don't leave any {} tags:
 
