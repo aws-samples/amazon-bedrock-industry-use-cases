@@ -6,7 +6,7 @@ This section of the repository contains *Healthcare Life Sciences* use-cases to 
 
 ## Contents
 
-- [Automate Discharge Instructions](automate-discharge-instructions) - An agent designed to help with patient discharge instructions
+- [Automate Discharge Instructions](automate-discharge-instructions) - An agent designed to generate discharge instructions for a given patient and diagnostic
 
 
 ## Contributing
