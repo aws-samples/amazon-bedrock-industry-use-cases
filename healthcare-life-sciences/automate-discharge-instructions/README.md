@@ -9,7 +9,7 @@
 
 This guide details how to install, configure, and use an [Agent for Amazon Bedrock](https://aws.amazon.com/bedrock/agents/) that will use an example patient API and an example [Knowledge Bases for Amazon Bedrock](https://aws.amazon.com/bedrock/knowledge-bases/) to take in promps like `generate discharge instructions for [patient-id] and [diagnostic]` and consult both the example API and Knowledge Base to generate discharge instructions based on a provided template.
 
-Example promopt and response is available in details on instructions below.
+Example prompt and response is available in details on instructions below.
 
 
 # Prerequisites
@@ -104,7 +104,7 @@ Example promopt and response is available in details on instructions below.
 6. Paste the sample prompt provided below and click '*Run*'
 
     ```
-    Write a discharge report for the patient PAT-0001 and diagnostic 'acne'.
+    Write a discharge report for the patient 'PAT-0001' and diagnostic 'acne'.
 
     Utilize the following template to write this report, make sure you add all the information required and don't leave any {} tags:
 
