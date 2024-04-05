@@ -1,18 +1,23 @@
 import os
-import json
-import logging
 
-from typing import List, Annotated
+from typing import List
+from typing_extensions import Annotated
 
 from serpapi import GoogleSearch
+from aws_lambda_powertools import Logger, Tracer
 from aws_lambda_powertools.event_handler.openapi.params import Query
-
-logger = logging.getLogger()
-logger.setLevel(logging.INFO)
+from aws_lambda_powertools.event_handler import BedrockAgentResolver
+from aws_lambda_powertools.utilities.typing import LambdaContext
 
 API_KEY = os.environ.get('API_KEY')
 
+tracer = Tracer()
+logger = Logger()
+app = BedrockAgentResolver()
 
+
+@app.get("/get_flights", description="Gets best flight results from Google Flights")
+@tracer.capture_method
 def get_flights(
     departure_id: Annotated[str, Query(description="Parameter defines the departure airport code or location kgmid. An airport code is an uppercase 3-letter code. For example, CDG is Paris Charles de Gaulle Airport and AUS is Austin-Bergstrom International Airport.")], 
     arrival_id: Annotated[str, Query(description="Parameter defines the arrival airport code or location kgmid. An airport code is an uppercase 3-letter code. For example, CDG is Paris Charles de Gaulle Airport and AUS is Austin-Bergstrom International Airport.")], 
@@ -31,8 +36,12 @@ def get_flights(
         "api_key": API_KEY
     }
 
+    logger.info(f"params: {params}")
+
     search = GoogleSearch(params)
     results = search.get_dict()
+
+    logger.info(f"response: {results}")
 
     if results.get('error'):
         output = results['error'] + "Ask the user for more information related to the context received about the function."
@@ -45,6 +54,8 @@ def get_flights(
     return output
 
 
+@app.get("/get_hotels", description="Gets hotels properties from Google Hotels")
+@tracer.capture_method
 def get_hotels(
     q: Annotated[str, Query(description="Parameter defines the location. e.g. Bali Resorts")], 
     check_in_date: Annotated[str, Query(description="Parameter defines the check-in date. The format is YYYY-MM-DD. e.g. 2024-02-10")], 
@@ -64,9 +75,14 @@ def get_hotels(
       "hl": "en",
       "api_key": API_KEY
     }
+
+    logger.info(f"params: {params}")
     
     search = GoogleSearch(params)
     results = search.get_dict()
+
+    logger.info(f'response: {results}')
+
     if results.get('error'):
         output = results['error'] + "Ask the user for more information related to the context received about the function."
     elif results.get("properties"):
@@ -74,71 +90,23 @@ def get_hotels(
     else:
         output = results + "Unknown Error."
         
+    logger.info(f'results: {output}')
     return output
 
 
-def lambda_handler(event, context):
-    responses = []
-    api_path = event['apiPath']
-    logger.info('API Path')
-    logger.info(api_path)
-    
-    if api_path == '/get_flights':
-        parameters = event['parameters']
-        departure_id = ""
-        arrival_id = ""
-        outbound_date = ""
-        return_date = ""
-        for parameter in parameters:
-            if parameter["name"] == "departure_id":
-                departure_id = parameter["value"]
-            if parameter["name"] == "arrival_id":
-                arrival_id = parameter["value"]
-            if parameter["name"] == "outbound_date":
-                outbound_date = parameter["value"]
-            if parameter["name"] == "return_date":
-                return_date = parameter["value"]
-        body = get_flights(departure_id, arrival_id, outbound_date, return_date)
-    elif api_path == '/get_hotels':
-        parameters = event['parameters']
-        q = ""
-        check_in_date = ""
-        check_out_date = ""
-        adults = ""
-        country_search = ""
-        for parameter in parameters:
-            if parameter["name"] == "location":
-                q = parameter["value"]
-            if parameter["name"] == "check_in_date":
-                check_in_date = parameter["value"]
-            if parameter["name"] == "check_out_date":
-                check_out_date = parameter["value"]
-            if parameter["name"] == "adults":
-                adults = parameter["value"]
-            if parameter["name"] == "country_search":
-                country_search = parameter["value"]
-        body = get_hotels(q, check_in_date, check_out_date, adults, country_search)
-    else:
-        body = {"{} is not a valid api, try another one.".format(api_path)}
-        
-    response_body = {
-        'application/json': {
-            'body': json.dumps(body)
-        }
-    }
-    
-    action_response = {
-        'actionGroup': event['actionGroup'],
-        'apiPath': event['apiPath'],
-        'httpMethod': event['httpMethod'],
-        'httpStatusCode': 200,
-        'responseBody': response_body
-    }
-    
-    responses.append(action_response)
-    
-    api_response = {
-        'messageVersion': '1.0', 
-        'response': action_response}
-    
-    return api_response
+@logger.inject_lambda_context
+@tracer.capture_lambda_handler
+def lambda_handler(event: dict, context: LambdaContext):
+    return app.resolve(event, context)
+
+
+if __name__ == "__main__":
+    # This displays the autogenerated openapi schema by aws_lambda_powertools
+    print(
+        app.get_openapi_json_schema(
+            title="Travel Planner Bot API",
+            version="1.0.0",
+            description="Travel Planner API for searching the best flight and hotel deals",
+            tags=["travel", "flights", "hotels"],
+        ),
+    )

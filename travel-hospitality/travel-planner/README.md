@@ -50,18 +50,18 @@ cdk bootstrap
 
 Substitute "my-api-key" with your SerpApi Api Key:
 ```sh
-cdk deploy -c apiKey="my-api-key" --require-approval never
+cdk deploy -c apiKey="my-api-key"
 ```
 
 Optional - if you want to change the [default settings](lib/constants.ts) you can deploy the stack like this (substituting "my-agent-name", "my-api-key", "my-agent-instruction", "my-agent-model", or "my-agent-description" with your desired values):
 
 ```sh
-cdk deploy -c agentName="my-agent-name" -c apiKey="my-api-key" -c agentInstruction="my-agent-instruction" -c agentModel="my-agent-model" -c agentDescription="my-agent-description" --require-approval never
+cdk deploy -c agentName="my-agent-name" -c apiKey="my-api-key" -c agentInstruction="my-agent-instruction" -c agentModel="my-agent-model" -c agentDescription="my-agent-description"
 ```
 
 # Sample prompts:
 
-+ *What is the cheapest flight to Miami in October, 2024?*
++ *What is the cheapest flight from Atlanta to Miami in October, 2024?*
 + *Can you find me a hotel under $150/night in San Francisco from December 4th to December 15th, 2024?*
 
 # Automatic OpenAPI generator with Powertools for AWS Lambda (Python):

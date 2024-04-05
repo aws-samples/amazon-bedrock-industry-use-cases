@@ -49,6 +49,7 @@ def get_flights(
         output = results + "Unknown Error."
     return output
 
+
 @app.get("/get_hotels", description="Gets hotels properties from Google Hotels")
 @tracer.capture_method
 def get_hotels(
