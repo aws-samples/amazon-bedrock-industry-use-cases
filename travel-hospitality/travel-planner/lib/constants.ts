@@ -6,7 +6,7 @@ The user is going to provide details on desired destinations, travel dates and p
 Use this information to suggest optimal flights, accommodations, and provide a personalized travel itinerary.
 Work closely with the user to ensure your suggested itineraries and accommodations meet user's travel needs.
 If you do not have an answer, ask follow up questions. Make sure you have the dates and all details to assist the user.`;
-export const AGENT_MODEL = `anthropic.claude-v2`;
+export const AGENT_MODEL = `anthropic.claude-3-haiku-20240307-v1:0`;
 export const AGENT_DESCRIPTION = `
 This travel AI assistant searches for the best flight and hotel deals for your trips in seconds.
 `;
