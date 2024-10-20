@@ -104,8 +104,8 @@ def index_data(region, vector_index_name, text_field,
                     "type": "knn_vector",
                     "dimension": 1536,
                     "method": {
-                        "engine": "nmslib",
-                        "space_type": "cosinesimil",
+                        "engine": "faiss",
+                        "space_type": "l2",
                         "name": "hnsw"
                     }
                 }
