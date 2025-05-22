@@ -1,13 +1,15 @@
-# Amazon Bedrock Agents: Industry Use Cases 
+# Amazon Bedrock Agents: Industry Use Cases
 
 This repository contains pre-built examples to help developers get started with Generative AI agents with Bedrock across multiple industries. The purpose of these templates are to enable GenAI developers and engineers with the proper resources and templates that can be customized with their own proprietary data to be used across various industries.
 
 ## Contents
 
 - [Healthcare Life Sciences](healthcare-life-sciences)
-    - [Automate Discharge Instructions](healthcare-life-sciences/automate-discharge-instructions) - An agent designed to generate discharge instructions for a given patient and medical diagnosis
+  - [Automate Discharge Instructions](healthcare-life-sciences/automate-discharge-instructions) - An agent designed to help with patient discharge instructions
+- [Auto Manufacturing](auto-manufacturing)
+  - [Equipment Monitoring Assistant](auto-manufacturing/chatbot-realtime-smart-monitoring) - An intelligent agent that provides real-time equipment monitoring and troubleshooting through natural language interactions
 - [Travel & Hospitality](travel-hospitality)
-    - [Travel Planner](travel-hospitality/travel-planner) - An agent designed to help with finding the best flights, hotels, and plan vacations
+  - [Travel Planner](travel-hospitality/travel-planner) - An agent designed to help with finding the best flights, hotels, and plan vacations
 
 ## Getting Started
 
@@ -17,7 +19,7 @@ To get started with the code examples, ensure you have access to [Amazon Bedrock
 
 We welcome community contributions! The goal is to keep this sample as a collaborative source-of-truth repository for builders and developers that have industry specific use cases that they have built out on Amazon Bedrock and want to share with the open-source community. The team is constantly building new genAI applications and always looking to push new demos out to automate daily tasks with Amazon Bedrock.
 
-For any specific questions on how to contribute, please contact puniomp@amazon.com and armdiazg@amazon.com. 
+For any specific questions on how to contribute, please contact puniomp@amazon.com and armdiazg@amazon.com.
 
 Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 
