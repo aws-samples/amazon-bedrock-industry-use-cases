@@ -17,7 +17,11 @@ To get started with the code examples, ensure you have access to [Amazon Bedrock
 
 ## Contributing
 
-We welcome community contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+We welcome community contributions! The goal is to keep this sample as a collaborative source-of-truth repository for builders and developers that have industry specific use cases that they have built out on Amazon Bedrock and want to share with the open-source community. The team is constantly building new genAI applications and always looking to push new demos out to automate daily tasks with Amazon Bedrock.
+
+For any specific questions on how to contribute, please contact puniomp@amazon.com and armdiazg@amazon.com.
+
+Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 
 ## Security
 
