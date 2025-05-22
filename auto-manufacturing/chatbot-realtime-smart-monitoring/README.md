@@ -1,4 +1,4 @@
-# Automate Discharge Instructions
+# Chatbot for Realtime Smart Monitoring
 =================================
 
 ## Authors:
