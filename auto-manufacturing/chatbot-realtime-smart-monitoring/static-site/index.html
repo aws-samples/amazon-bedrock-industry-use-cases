@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Digital Twin Dashboard - Factory Maintenance</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Factory Digital Twin Dashboard</h1>
+            <div class="status-indicator online">System Online</div>
+            <div id="timestamp"></div>
+        </header>
+        
+        <div id="loading-overlay" class="loading-overlay">
+            <div class="loading-spinner"></div>
+            <div class="loading-text">Loading Dashboard...</div>
+        </div>
+
+        <div class="dashboard-grid">
+            <div class="card">
+                <h2>Machine Status Overview</h2>
+                <div class="status-display">
+                    <div class="machine-status clickable" onclick="handleAlertClick('temperature', '75.2F', 'PLC-001')">
+                        <span class="status-dot active"></span>
+                        <span>PLC-001</span>
+                        <div class="readings">
+                            <p>Temperature: <span id="temp-reading-1">75.2°F</span></p>
+                            <p>Pressure: <span id="pressure-reading-1">2.4 bar</span></p>
+                        </div>
+                    </div>
+                    <div class="machine-status clickable" onclick="handleAlertClick('temperature', '72.8F', 'PLC-002')">
+                        <span class="status-dot active"></span>
+                        <span>PLC-002</span>
+                        <div class="readings">
+                            <p>Temperature: <span id="temp-reading-2">72.8°F</span></p>
+                            <p>Pressure: <span id="pressure-reading-2">2.2 bar</span></p>
+                        </div>
+                    </div>
+                    <div class="machine-status danger clickable" onclick="handleAlertClick('temperature', '95.2F', 'PLC-003')">
+                        <span class="status-dot danger"></span>
+                        <span>PLC-003</span>
+                        <div class="readings">
+                            <p>Temperature: <span id="temp-reading-3" class="danger-text">95.2°F</span></p>
+                            <p>Pressure: <span id="pressure-reading-3" class="danger-text">3.2 bar</span></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>Temperature Trend</h2>
+                <div class="chart-container">
+                    <canvas id="tempChart"></canvas>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>Production Overview</h2>
+                <div class="production-stats">
+                    <div class="stat-item">
+                        <h3>Daily Output</h3>
+                        <p id="daily-output">5,234 units</p>
+                    </div>
+                    <div class="stat-item">
+                        <h3>Efficiency</h3>
+                        <p id="efficiency">92.7%</p>
+                    </div>
+                    <div class="stat-item">
+                        <h3>Quality Rate</h3>
+                        <p id="quality-rate">99.2%</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>Energy Consumption</h2>
+                <div class="chart-container">
+                    <canvas id="energyChart"></canvas>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>Alerts</h2>
+                <div class="alerts-list" id="alertsList">
+                    <!-- Alerts will be populated by JavaScript -->
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>Maintenance Schedule</h2>
+                <div class="maintenance-list">
+                    <div class="maintenance-item">
+                        <span class="maintenance-priority high">High</span>
+                        <p>PLC-001 Filter Replacement</p>
+                        <p class="maintenance-date">Due: Today</p>
+                    </div>
+                    <div class="maintenance-item">
+                        <span class="maintenance-priority medium">Medium</span>
+                        <p>Calibration Check</p>
+                        <p class="maintenance-date">Due: Tomorrow</p>
+                    </div>
+                    <div class="maintenance-item">
+                        <span class="maintenance-priority low">Low</span>
+                        <p>Software Update</p>
+                        <p class="maintenance-date">Due: Next Week</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>OEE Metrics</h2>
+                <div class="oee-container">
+                    <div class="gauge-container">
+                        <div class="gauge-wrapper">
+                            <canvas id="availabilityGauge"></canvas>
+                            <div class="gauge-value" id="availability-value">85%</div>
+                        </div>
+                        <p>Availability</p>
+                    </div>
+                    <div class="gauge-container">
+                        <div class="gauge-wrapper">
+                            <canvas id="performanceGauge"></canvas>
+                            <div class="gauge-value" id="performance-value">92%</div>
+                        </div>
+                        <p>Performance</p>
+                    </div>
+                    <div class="gauge-container">
+                        <div class="gauge-wrapper">
+                            <canvas id="qualityGauge"></canvas>
+                            <div class="gauge-value" id="quality-value">98%</div>
+                        </div>
+                        <p>Quality</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>Production Line Status</h2>
+                <div class="production-line-new">
+                    <div class="production-stage">
+                        <div class="stage-header">
+                            <span class="stage-icon">📦</span>
+                            <span class="stage-name">Raw Materials</span>
+                        </div>
+                        <div class="stage-status active">Active</div>
+                        <div class="stage-arrow">→</div>
+                    </div>
+                    <div class="production-stage">
+                        <div class="stage-header">
+                            <span class="stage-icon">⚙️</span>
+                            <span class="stage-name">Processing</span>
+                        </div>
+                        <div class="stage-status active">Active</div>
+                        <div class="stage-arrow">→</div>
+                    </div>
+                    <div class="production-stage">
+                        <div class="stage-header">
+                            <span class="stage-icon">🔍</span>
+                            <span class="stage-name">Quality</span>
+                        </div>
+                        <div class="stage-status danger">Warning</div>
+                        <div class="stage-arrow">→</div>
+                    </div>
+                    <div class="production-stage">
+                        <div class="stage-header">
+                            <span class="stage-icon">📤</span>
+                            <span class="stage-name">Packaging</span>
+                        </div>
+                        <div class="stage-status active">Active</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>Environmental Metrics</h2>
+                <div class="env-metrics">
+                    <div class="env-item">
+                        <span>Humidity</span>
+                        <div class="env-value" id="humidity">45%</div>
+                    </div>
+                    <div class="env-item">
+                        <span>CO2 Levels</span>
+                        <div class="env-value" id="co2">420 ppm</div>
+                    </div>
+                    <div class="env-item">
+                        <span>Noise Level</span>
+                        <div class="env-value" id="noise">72 dB</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>Quality Control</h2>
+                <div class="quality-metrics">
+                    <div class="chart-container">
+                        <canvas id="qualityChart"></canvas>
+                    </div>
+                    <div class="defect-list">
+                        <h3>Latest Defects</h3>
+                        <div class="defect-item">
+                            <span class="defect-type">Surface Scratch</span>
+                            <span class="defect-count">3</span>
+                        </div>
+                        <div class="defect-item">
+                            <span class="defect-type">Dimension Error</span>
+                            <span class="defect-count">1</span>
+                        </div>
+                        <div class="defect-item">
+                            <span class="defect-type">Color Mismatch</span>
+                            <span class="defect-count">2</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>Resource Utilization</h2>
+                <div class="resource-metrics">
+                    <div class="resource-item">
+                        <span>CPU Load</span>
+                        <div class="progress-bar">
+                            <div class="progress" id="cpu-load" style="width: 65%"></div>
+                        </div>
+                        <span>65%</span>
+                    </div>
+                    <div class="resource-item">
+                        <span>Memory Usage</span>
+                        <div class="progress-bar">
+                            <div class="progress" id="memory-usage" style="width: 78%"></div>
+                        </div>
+                        <span>78%</span>
+                    </div>
+                    <div class="resource-item">
+                        <span>Network Bandwidth</span>
+                        <div class="progress-bar">
+                            <div class="progress" id="network-usage" style="width: 45%"></div>
+                        </div>
+                        <span>45%</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>System Health Overview</h2>
+                <div class="system-health">
+                    <div class="health-metrics">
+                        <div class="health-item">
+                            <div class="health-header">
+                                <span class="health-icon">🖥️</span>
+                                <span class="health-label">System Uptime</span>
+                            </div>
+                            <div class="health-value" id="system-uptime">99.9%</div>
+                            <div class="health-status good">Normal</div>
+                        </div>
+                        <div class="health-item">
+                            <div class="health-header">
+                                <span class="health-icon">📡</span>
+                                <span class="health-label">Network Latency</span>
+                            </div>
+                            <div class="health-value" id="network-latency">24ms</div>
+                            <div class="health-status good">Normal</div>
+                        </div>
+                        <div class="health-item">
+                            <div class="health-header">
+                                <span class="health-icon">🔗</span>
+                                <span class="health-label">API Response</span>
+                            </div>
+                            <div class="health-value" id="api-response">198ms</div>
+                            <div class="health-status warning">Warning</div>
+                        </div>
+                    </div>
+                    <div class="system-chart-container">
+                        <canvas id="systemHealthChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function handleAlertClick(sensor, reading, plc) {
+            const url = `chatbot.html?sensor=${encodeURIComponent(sensor)}&reading=${encodeURIComponent(reading)}&plc=${encodeURIComponent(plc)}`;
+            window.location.href = url;
+        }
+    </script>
+    <script src="script.js"></script>
+</body>
+</html>
