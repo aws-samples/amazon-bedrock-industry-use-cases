@@ -9,7 +9,7 @@ The energy industry generates large volumes of unstructured documents such as we
 ## Project Structure
 
 ```
-23-Energy-Well-Reports/
+well-reports-bda/
 ├── 23-Energy_Well_Reports.ipynb          # Interactive walkthrough notebook
 ├── data/                                 # Sample data and configurations
 │   ├── blueprints/                       # Custom extraction blueprints
@@ -107,10 +107,10 @@ The following issues were identified via manual review (ASH summary) and automat
    - Experiment with the sample documents and blueprints
 
 ## Contributors
-   - Trace Smith
-   - Pavan Pusuluri
-   - Avneet Bansal
-   - Jin Fei
-   - Sachin Khanna
-   - Colin Sturm
+
+- [Pavan Pusuluri](https://www.linkedin.com/in/pavan-pusuluri-03871021)
+- [Avneet Bansal](https://www.linkedin.com/in/avneet-bansal-4402231b)
+- [Jin Fei](https://www.linkedin.com/in/jin-fei-64926a7)
+- [Sachin Khanna](https://in.linkedin.com/in/sachinkhanna43)
+- [Colin Sturm](https://www.linkedin.com/in/colinsturm)
 

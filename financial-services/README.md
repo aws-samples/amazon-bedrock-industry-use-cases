@@ -1,10 +1,10 @@
-# Travel & Hospitality
+# Financial Services
 
-This section contains Travel & Hospitality industry use cases demonstrating generative AI applications built with Amazon Bedrock.
+This section contains Financial Services industry use cases demonstrating generative AI applications built with Amazon Bedrock.
 
 ## Contents
 
-- [Travel Planner](travel-planner) - A Bedrock Agent that helps find the best flights, hotels, and plan vacations
+- [Mortgage and Lending (BDA)](mortgage-lending-bda/) - Automated mortgage document processing using Bedrock Data Automation
 
 ## Contributing
 

@@ -1,10 +1,10 @@
-# Travel & Hospitality
+# Energy
 
-This section contains Travel & Hospitality industry use cases demonstrating generative AI applications built with Amazon Bedrock.
+This section contains Energy industry use cases demonstrating generative AI applications built with Amazon Bedrock.
 
 ## Contents
 
-- [Travel Planner](travel-planner) - A Bedrock Agent that helps find the best flights, hotels, and plan vacations
+- [Well Reports Processing (BDA)](well-reports-bda/) - Automated extraction of insights from energy well reports using Bedrock Data Automation
 
 ## Contributing
 

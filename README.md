@@ -4,12 +4,21 @@ This repository contains pre-built examples to help developers get started with 
 
 ## Contents
 
-- [Healthcare Life Sciences](healthcare-life-sciences)
-  - [Automate Discharge Instructions](healthcare-life-sciences/automate-discharge-instructions) - An agent designed to help with patient discharge instructions
 - [Auto Manufacturing](auto-manufacturing)
   - [Equipment Monitoring Assistant](auto-manufacturing/chatbot-realtime-smart-monitoring) - An intelligent agent that provides real-time equipment monitoring and troubleshooting through natural language interactions
+- [Energy](energy)
+  - [Well Reports (BDA)](energy/well-reports-bda/) - Document processing for energy well reports using Bedrock Data Automation
+- [Financial Services](financial-services)
+  - [Mortgage and Lending (BDA)](financial-services/mortgage-lending-bda/) - Automated mortgage document processing using Bedrock Data Automation
+- [Healthcare & Life Sciences](healthcare-life-sciences)
+  - [Automate Discharge Instructions](healthcare-life-sciences/automate-discharge-instructions) - An agent designed to help with patient discharge instructions
+  - [Medical Claims Processing (BDA)](healthcare-life-sciences/medical-claims-bda/) - Claims processing automation using Bedrock Data Automation
 - [Travel & Hospitality](travel-hospitality)
   - [Travel Planner](travel-hospitality/travel-planner) - An agent designed to help with finding the best flights, hotels, and plan vacations
+
+### Shared Resources
+
+- [Bedrock Data Automation - Getting Started](common/bedrock-data-automation-intro/) - Introductory notebooks for understanding BDA (start here before BDA use cases)
 
 ## Getting Started
 

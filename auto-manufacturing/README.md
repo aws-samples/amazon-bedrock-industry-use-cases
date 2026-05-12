@@ -1,27 +1,11 @@
-# AWS Samples - Auto Manufacturing Industry
+# Auto Manufacturing
 
-This directory contains sample applications demonstrating how to integrate Amazon Web Services with auto manufacturing industry use cases.
+This section contains Auto Manufacturing industry use cases demonstrating generative AI applications built with Amazon Bedrock.
 
-## Solutions
+## Contents
 
-### Equipment Monitoring Assistant
+- [Equipment Monitoring Assistant](chatbot-realtime-smart-monitoring) - An intelligent chatbot agent that provides real-time equipment monitoring and troubleshooting through natural language interactions
 
-The Equipment Monitoring Assistant is an intelligent chatbot agent that combines real-time equipment monitoring with natural language processing capabilities. This solution enables:
+## Contributing
 
-- Real-time monitoring and analysis of equipment performance metrics
-- Natural language querying of equipment documentation and operational data
-- Intelligent alerting and troubleshooting recommendations when metrics deviate from expected ranges
-- Seamless integration of equipment manuals and historical data for comprehensive responses
-- Interactive dashboard with AI-powered insights for preventive maintenance
-
-## Getting Started
-
-Each subdirectory contains a standalone sample application with its own deployment and usage instructions. Navigate to the specific solution you're interested in to get started.
-
-## Security
-
-See [CONTRIBUTING](../CONTRIBUTING.md) for more information.
-
-## License
-
-This library is licensed under the MIT-0 License. See the LICENSE file.
+We welcome community contributions! Please ensure your sample aligns with AWS [best practices](https://aws.amazon.com/architecture/well-architected/), and please update the **Contents** section of this README file with a link to your sample, along with a description.

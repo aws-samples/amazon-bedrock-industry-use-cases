@@ -1,13 +1,11 @@
-# Healthcare Life Sciences
+# Healthcare & Life Sciences
 
-Agents the delivery of generative AI applications that can manage and perform tasks by making API calls to your company systems. Agents extend FMs to understand user requests, break down complex tasks into multiple steps, carry on a conversation to collect additional information, and take actions to fulfill the request.
-
-This section of the repository contains *Healthcare Life Sciences* use-cases to get you started with Amazon Bedrock Agents.
+This section contains Healthcare & Life Sciences use cases demonstrating generative AI applications built with Amazon Bedrock.
 
 ## Contents
 
-- [Automate Discharge Instructions](automate-discharge-instructions) - An agent designed to generate discharge instructions for a given patient and medical diagnosis
-
+- [Automate Discharge Instructions](automate-discharge-instructions) - A Bedrock Agent that generates discharge instructions for a given patient and medical diagnosis
+- [Medical Claims Processing (BDA)](medical-claims-bda/) - Automated medical claims document processing using Bedrock Data Automation
 
 ## Contributing
 
