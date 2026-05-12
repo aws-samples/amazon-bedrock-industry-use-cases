@@ -1,0 +1,668 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+        "title": "Insurance Claims Automation API",
+        "version": "1.0.0",
+        "description": "APIs for managing insurance claims by pulling a list of open claims, identifying outstanding paperwork for each claim, and sending reminders to policy holders."
+    },
+    "paths": {
+        "/member_and_patient": {
+            "get": {
+                "summary": "Get Insured Member and Patient details from the claims database using the Insured ID Number, Patient Birt Date and Patient Last Name from claim for data",
+                "description": "Get Insured Member and Patient details from the claims database using the Insured ID Number, Patient Birt Date and Patient Last Name from claim for data",
+                "operationId": "getMemberAndPatientDetails",
+                "parameters": [
+                    {
+                        "name": "insured_id_number",
+                        "in": "query",
+                        "description": "Unique ID of the insured person",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "patient_birth_date",
+                        "in": "query",
+                        "description": "The patient's birth date in YYYY-MM-DD format",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "date"
+                        }
+                    },
+                    {
+                        "name": "patient_last_name",
+                        "in": "query",
+                        "description": "The patient's last name",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "insuredId": {
+                                            "type": "integer",
+                                            "description": "A unique Id for the member in the claims database"
+                                        },
+                                        "memberName": {
+                                            "type": "string",
+                                            "description": "The member's full name"
+                                        },
+                                        "memberAddress": {
+                                            "type": "object",
+                                            "description": "The member's address"
+                                        },
+                                        "memberDateOfBirth": {
+                                            "type": "string",
+                                            "format": "date",
+                                            "description": "The member's date of birth"
+                                        },
+                                        "memberPlanDetails": {
+                                            "type": "object",
+                                            "properties": {
+                                                "planName": {
+                                                    "type": "string",
+                                                    "description": "The member's plan name"
+                                                },
+                                                "groupNumber": {
+                                                    "type": "string",
+                                                    "description": "The member's group number"
+                                                },
+                                                "planNumber": {
+                                                    "type": "string",
+                                                    "description": "The member's subscriber number"
+                                                }
+                                            }
+                                        },
+                                        "memberPhoneNumber": {
+                                            "type": "string",
+                                            "description": "The member's phone number"
+                                        },
+                                        "patientId": {
+                                            "type": "string",
+                                            "description": "A unique Id for the patient in the claims database"
+                                        },
+                                        "patientFirstName": {
+                                            "type": "string",
+                                            "description": "The patient's first name"
+                                        },
+                                        "patientLastName": {
+                                            "type": "string",
+                                            "description": "The patient's last name"
+                                        },
+                                        "patientAddress": {
+                                            "type": "object",
+                                            "description": "The patient's address"
+                                        },
+                                        "patientDateOfBirth": {
+                                            "type": "string",
+                                            "format": "date",
+                                            "description": "The patient's date of birth in YYYY-MM-DD format"
+                                        },
+                                        "relationship_to_insured": {
+                                            "type": "string",
+                                            "description": "The patient's relation to the insured member"
+                                        },
+                                        "patientSex": {
+                                            "type": "string",
+                                            "description": "The patient's gender"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/get_claims_form_data": {
+            "get": {
+                "summary": "get the claim form data from S3 using the input S3 URI",
+                "description": "Get the claim form data",
+                "operationId": "getClaimsFormData",
+                "parameters": [
+                    {
+                        "name": "s3URI",
+                        "in": "query",
+                        "description": "The S3 URI of the claims form",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "S3 Claims Form Content",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "claims_form_data": {
+                                            "type": "string",
+                                            "description": "Claims form data in JSON"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/member/{insured_id_number}": {
+            "get": {
+                "summary": "get the insured member information using the given insured id number",
+                "description": "Get the details of the insured member.",
+                "operationId": "getMemberDetails",
+                "parameters": [
+                    {
+                        "name": "insured_id_number",
+                        "in": "path",
+                        "description": "Unique ID of the insured person",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "memberName": {
+                                            "type": "string",
+                                            "description": "The member's full name"
+                                        },
+                                        "memberAddress": {
+                                            "type": "object",
+                                            "description": "The member's address"
+                                        },
+                                        "memberDateOfBirth": {
+                                            "type": "string",
+                                            "format": "date",
+                                            "description": "The member's date of birth"
+                                        },
+                                        "memberPlanDetails": {
+                                            "type": "object",
+                                            "properties": {
+                                                "planName": {
+                                                    "type": "string",
+                                                    "description": "The member's plan name"
+                                                },
+                                                "groupNumber": {
+                                                    "type": "string",
+                                                    "description": "The member's group number"
+                                                },
+                                                "policyNumber": {
+                                                    "type": "string",
+                                                    "description": "The member's Policy number"
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/claims": {
+            "get": {
+                "summary": "Get all claims",
+                "description": "Retrieve all claims with pagination",
+                "operationId": "listClaims",
+                "parameters": [
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "description": "Page number for pagination",
+                        "schema": {
+                            "type": "integer",
+                            "default": 1,
+                            "minimum": 1
+                        }
+                    },
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "description": "Number of claims per page",
+                        "schema": {
+                            "type": "integer",
+                            "default": 20,
+                            "minimum": 1,
+                            "maximum": 100
+                        }
+                    },
+                    {
+                        "name": "sortBy",
+                        "in": "query",
+                        "description": "Field to sort by",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "claim_id",
+                                "createdAt",
+                                "updatedAt",
+                                "status"
+                            ],
+                            "default": "createdAt"
+                        }
+                    },
+                    {
+                        "name": "sortOrder",
+                        "in": "query",
+                        "description": "Sort order",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "asc",
+                                "desc"
+                            ],
+                            "default": "desc"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "claims": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/Claim"
+                                            }
+                                        },
+                                        "pagination": {
+                                            "type": "object",
+                                            "properties": {
+                                                "currentPage": {
+                                                    "type": "integer"
+                                                },
+                                                "totalPages": {
+                                                    "type": "integer"
+                                                },
+                                                "totalClaims": {
+                                                    "type": "integer"
+                                                },
+                                                "limit": {
+                                                    "type": "integer"
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "summary": "Create a new claim",
+                "description": "Create a claim record using the claim form data and patient id fetched from claims database",
+                "operationId": "createClaim",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "patient_id": {
+                                        "type": "integer"
+                                    },
+                                    "claim_date": {
+                                        "type": "string",
+                                        "description": "The date the claim was submitted in YYYY-MM-DD format",
+                                        "format":"date",
+                                        "pattern": "^\\d{4}-((0[1-9])|(1[012]))-((0[1-9]|[12]\\d)|3[01])$",
+                                        "example": "2024-12-02"                                               
+                                    },
+                                    "total_charges": {
+                                        "type": "number"
+                                    },
+                                    "amount_paid": {
+                                        "type": "number"
+                                    },
+                                    "balance": {
+                                        "type": "number"
+                                    },
+                                    "diagnosis_1": {
+                                        "type": "string"
+                                    },
+                                    "diagnosis_2": {
+                                        "type": "string"
+                                    },
+                                    "diagnosis_3": {
+                                        "type": "string"
+                                    },
+                                    "diagnosis_4": {
+                                        "type": "string"
+                                    }                                
+                                },
+                                "required": [
+                                    "patient_id",
+                                    "claim_date",
+                                    "total_charges",
+                                    "amount_paid",
+                                    "balance",
+                                    "diagnosis_1"
+                                ]
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Claim created successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "claim_id": {
+                                            "type": "integer"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid input"
+                    }
+                }
+            }
+        },
+        "/claims/{claim_id}/service": {
+            "post": {
+                "summary": "Create a new service",
+                "description": "Create a service using the details of the service, treatment or procedure from claim form data and claim number",
+                "operationId": "createService",
+                "parameters": [
+                    {
+                        "name": "claim_id",
+                        "in": "path",
+                        "description": "The Unique Id for the Claim",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "date_of_service": {
+                                        "type": "string",
+                                        "format": "date",
+                                        "description": "The date of service in YYYY-MM-DD format",
+                                        "pattern": "^\\d{4}-((0[1-9])|(1[012]))-((0[1-9]|[12]\\d)|3[01])$",
+                                        "example": "2024-12-02"                                               
+                                    },
+                                    "type_of_service": {
+                                        "type": "string"
+                                    },
+                                    "place_of_service": {
+                                        "type": "string"
+                                    },
+                                    "procedure_code": {
+                                        "type": "integer"
+                                    },
+                                    "amount": {
+                                        "type": "number"
+                                    }
+                                },
+                                "required": [
+                                    "date_of_service",
+                                    "type_of_service",
+                                    "place_of_service",
+                                    "procedure_code",
+                                    "amount"
+                                ]
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Service created successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "service_id": {
+                                            "type": "integer"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid input"
+                    }
+                }
+            }
+           
+        },
+        "/claims/{claim_id}": {
+            "get": {
+                "summary": "Get claim details",
+                "description": "Retrieve claim details given a claim number",
+                "operationId": "getClaim",
+                "parameters": [
+                    {
+                        "name": "claim_id",
+                        "description": "The Unique Id for the Claim",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Claim"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Claim not found"
+                    }
+                }
+            },
+            "patch": {
+                "summary": "Update claim status",
+                "description": "Update the status of an existing claim",
+                "operationId": "updateClaim",
+                "parameters": [
+                    {
+                        "name": "claim_id",
+                        "description": "The Unique Id for the Claim",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "status": {
+                                        "type": "string",
+                                        "enum": [
+                                            "NEW",
+                                            "ELIGIBLE",
+                                            "ADJUDICATOR_REVIEW"
+                                        ]
+                                    }
+                                },
+                                "required": [
+                                    "status"
+                                ]
+                            }
+                        }
+                    }
+                },                
+                "responses": {
+                    "200": {
+                        "description": "Claim status updated successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Claim"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid input"
+                    },
+                    "404": {
+                        "description": "Claim not found"
+                    }
+                }
+            }
+        },
+        "/claims/insured/{insuredId}": {
+            "get": {
+                "summary": "Get all claims for an insured",
+                "description": "Retrieve all claims associated with a given insured ID number",
+                "operationId": "listClaimsForInsured",
+                "parameters": [
+                    {
+                        "name": "insuredId",
+                        "description": "The Unique Id for the Insured",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/Claim"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "No claims found for the insured"
+                    }
+                }
+            }
+        }
+    },
+    "components": {
+        "schemas": {
+            "Claim": {
+                "type": "object",
+                "properties": {
+                    "claim_id": {
+                        "type": "string"
+                    }
+                }
+            },
+            "ClaimInfo": {
+                "type": "object",
+                "properties": {
+                    "dateOfService": {
+                        "type": "object",
+                        "properties": {
+                            "from": {
+                                "type": "string",
+                                "format": "date"
+                            },
+                            "to": {
+                                "type": "string",
+                                "format": "date"
+                            }
+                        },
+                        "required": [
+                            "from",
+                            "to"
+                        ]
+                    },
+                    "placeOfService": {
+                        "type": "string"
+                    },
+                    "emg": {
+                        "type": "boolean"
+                    },
+                    "cptHcpcs": {
+                        "type": "string"
+                    },
+                    "modifier": {
+                        "type": "string"
+                    },
+                    "diagnosisPointer": {
+                        "type": "string"
+                    },
+                    "charges": {
+                        "type": "number"
+                    },
+                    "daysOrUnits": {
+                        "type": "integer"
+                    },
+                    "epsdt": {
+                        "type": "boolean"
+                    },
+                    "renderingProviderNpi": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "dateOfService",
+                    "placeOfService",
+                    "cptHcpcs",
+                    "charges",
+                    "daysOrUnits"
+                ]
+            }
+        }
+    }
+}

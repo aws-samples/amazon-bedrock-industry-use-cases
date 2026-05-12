@@ -1,0 +1,1479 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: "BDA Documents Workshop VPC and Aurora Serverless DB Resources"
+Parameters:
+  ClaimsReviewDatabaseName:
+    Description: Claims Review Database Name
+    Type: String
+    Default: "claimsdatabase"
+  ClaimsVectorStoreCollectionName:
+    Description: Claims Vector Store Collection Name
+    Type: String
+    Default: "bdaworkshop-vector-store"
+  AmazonOpenSearchIndexName:
+    Description: Claims Vector Store Collection Name
+    Type: String
+    Default: "bdaworkshop_eoc_index"
+  UserProfileName:
+    Type: String
+    Description: The user profile name for the SageMaker workshop
+    Default: 'sagemakeruser'
+  DomainName:
+    Type: String
+    Description: The domain name of the Sagemaker studio instance
+    Default: 'bda-workshop-domain'
+  SpaceName:
+    Type: String
+    Description: The space name of the Sagemaker studio JupyterLab instance
+    Default: 'bda-workshop-space'
+# Then in the VPC definition:
+Mappings:
+  RegionMap:
+    us-east-1: 
+      jupyter: "arn:aws:sagemaker:us-east-1:081325390199:image/jupyter-server-3"
+      instance: "ml.t3.medium"
+      AssetsBucket: "ws-assets-prod-iad-r-iad-ed304a55c2ca1aee"
+      S3PrefixListId: "pl-63a5400a"
+    us-west-2: 
+      jupyter: "arn:aws:sagemaker:us-west-2:236514542706:image/jupyter-server-3"
+      instance: "ml.t3.medium"
+      AssetsBucket: "ws-assets-prod-iad-r-pdx-f3b3f9f1a7d6a3d0"
+      S3PrefixListId: "pl-68a54001"
+
+Resources:
+  BDAWorkshopVPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: 10.0.0.0/16
+      EnableDnsSupport: "true"
+      EnableDnsHostnames: "true"
+      InstanceTenancy: "default"
+      Tags:
+        - Key: Name
+          Value: BDAWorkshopVPC
+
+  BDAWorkshopInternetGateway:
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags:
+        - Key: Name
+          Value: InternetGateway
+
+  InternetGatewayAttachment: 
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties: 
+      VpcId: 
+        !Ref BDAWorkshopVPC
+      InternetGatewayId: !Ref  BDAWorkshopInternetGateway
+
+  BDAWorkshopPublicSubnet1:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref  BDAWorkshopVPC 
+      AvailabilityZone: 
+        Fn::Select: 
+          - 0
+          - Fn::GetAZs: ""
+      CidrBlock: "10.0.1.0/24"
+      MapPublicIpOnLaunch: false
+      Tags:
+        - Key: Name
+          Value: BDAWorkshopPublicSubnet1
+        - Key: Network
+          Value: Public
+
+  BDAWorkshopPublicSubnet2:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref BDAWorkshopVPC 
+      AvailabilityZone: 
+        Fn::Select: 
+          - 1
+          - Fn::GetAZs: ""
+      CidrBlock: "10.0.2.0/24"
+      MapPublicIpOnLaunch: false
+      Tags:
+        - Key: Name
+          Value: BDAWorkshopPublicSubnet2
+        - Key: Network
+          Value: Public
+
+  # Added Private Subnets
+  BDAWorkshopPrivateSubnet1:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref BDAWorkshopVPC
+      AvailabilityZone: 
+        Fn::Select: 
+          - 0
+          - Fn::GetAZs: ""      
+      CidrBlock: "10.0.3.0/24"
+      Tags:
+        - Key: Name
+          Value: BDAWorkshopPrivateSubnet1
+        - Key: Network
+          Value: Private
+
+  BDAWorkshopPrivateSubnet2:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref BDAWorkshopVPC
+      AvailabilityZone: 
+        Fn::Select: 
+          - 1
+          - Fn::GetAZs: ""      
+      CidrBlock: "10.0.4.0/24"
+      Tags:
+        - Key: Name
+          Value: BDAWorkshopPrivateSubnet2
+        - Key: Network
+          Value: Private
+
+  BDAWorkshopPublicRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref BDAWorkshopVPC
+      Tags:
+        - Key: Name
+          Value: PublicRouteTable
+
+  # Added Private Route Tables
+  BDAWorkshopPrivateRouteTable1:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref BDAWorkshopVPC
+      Tags:
+        - Key: Name
+          Value: BDAWorkshopPrivateRouteTable1
+
+  # amazonq-ignore-next-line
+  BDAWorkshopPublicRoute:
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId: !Ref BDAWorkshopPublicRouteTable
+      DestinationCidrBlock: "0.0.0.0/0"  # Added missing CIDR block
+      GatewayId: !Ref BDAWorkshopInternetGateway
+
+  # Added Private Routes
+  BDAWorkshopPrivateRoute1:
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId: !Ref BDAWorkshopPrivateRouteTable1
+      DestinationCidrBlock: "0.0.0.0/0"  # Added missing CIDR block
+      NatGatewayId: !Ref BDAWorkshopNATGateway
+
+  BDAWorkshopPublicSubnet1RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref BDAWorkshopPublicSubnet1
+      RouteTableId: !Ref BDAWorkshopPublicRouteTable
+
+  BDAWorkshopPublicSubnet2RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref BDAWorkshopPublicSubnet2
+      RouteTableId: !Ref BDAWorkshopPublicRouteTable
+
+  # Added Private Subnet Route Table Associations
+  BDAWorkshopPrivateSubnet1RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref BDAWorkshopPrivateSubnet1
+      RouteTableId: !Ref BDAWorkshopPrivateRouteTable1
+
+  BDAWorkshopPrivateSubnet2RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref BDAWorkshopPrivateSubnet2
+      RouteTableId: !Ref BDAWorkshopPrivateRouteTable1
+
+  BDAWorkshopNATGateway:
+    Type: AWS::EC2::NatGateway
+    Properties:
+      AllocationId: !GetAtt BDAWorkshopElasticIP.AllocationId
+      SubnetId: !Ref BDAWorkshopPublicSubnet1
+      Tags:
+        - Key: Name
+          Value: BDAWorkshopNATGateway
+
+  BDAWorkshopElasticIP:
+    Type: AWS::EC2::EIP
+    Properties:
+      Domain: vpc
+
+  VPCLambdaSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Security group for Claims Review Resources
+      VpcId: !Ref BDAWorkshopVPC
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 443
+          ToPort: 443
+          CidrIp: !GetAtt BDAWorkshopVPC.CidrBlock
+          Description: Allow Inbound HTTPS traffic from within the VPC
+        - IpProtocol: tcp
+          FromPort: 443
+          ToPort: 443
+          Description: Allow inbound HTTPS traffic to S3 Prefix List
+          SourcePrefixListId: !FindInMap [RegionMap, !Ref "AWS::Region", S3PrefixListId]
+      SecurityGroupEgress:
+        - IpProtocol: tcp
+          FromPort: 443
+          ToPort: 443
+          CidrIp: !GetAtt BDAWorkshopVPC.CidrBlock
+          Description: Allow outbound HTTPS traffic to within the VPC
+        - IpProtocol: tcp
+          FromPort: 443
+          ToPort: 443
+          Description: Allow outbound HTTPS traffic to S3 Prefix List
+          DestinationPrefixListId: !FindInMap [RegionMap, !Ref "AWS::Region", S3PrefixListId]
+      Tags:
+        - Key: Name
+          Value: VPCLambdaSecurityGroup
+
+  VPCEndpointSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Security group for Claims Review Resources
+      VpcId: !Ref BDAWorkshopVPC
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 443
+          ToPort: 443
+          CidrIp: !GetAtt BDAWorkshopVPC.CidrBlock
+          Description: Allow Inbound HTTPS traffic from within the VPC
+      SecurityGroupEgress:
+        - IpProtocol: tcp
+          FromPort: 5432
+          ToPort: 5432
+          CidrIp: !GetAtt BDAWorkshopVPC.CidrBlock
+          Description: Allow outbound PostgreSQL traffic to the VPC
+        - IpProtocol: tcp
+          FromPort: 443
+          ToPort: 443
+          CidrIp: !GetAtt BDAWorkshopVPC.CidrBlock
+          Description: Allow outbound HTTPS traffic to the VPC
+      Tags:
+        - Key: Name
+          Value: VPCEndpointSecurityGroup
+
+  ClaimsReviewDBSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Security group for Claims Review DB
+      VpcId: !Ref BDAWorkshopVPC
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 5432
+          ToPort: 5432
+          CidrIp: !GetAtt BDAWorkshopVPC.CidrBlock  # Added VPC CIDR as the allowed source
+          Description: Allow inbound PostgreSQL traffic from within the VPC
+      SecurityGroupEgress:
+        - IpProtocol: tcp
+          FromPort: 5432
+          ToPort: 5432
+          CidrIp: !GetAtt BDAWorkshopVPC.CidrBlock
+          Description: Allow outbound PostgreSQL traffic within the VPC
+      Tags:
+        - Key: Name
+          Value: ClaimsReviewDBSecurityGroup
+  
+  ClaimsReviewDBSubnetGroup:
+    Type: AWS::RDS::DBSubnetGroup
+    Properties:
+      DBSubnetGroupDescription: "Subnet group for Claims Review DB"
+      SubnetIds:
+        - !Ref BDAWorkshopPrivateSubnet1
+        - !Ref BDAWorkshopPrivateSubnet2
+      Tags:
+        - Key: Name
+          Value: ClaimsReviewDBSubnetGroup
+
+#Aurora Serverless DB Secret
+  ClaimsReviewDBSecret:
+    Type: AWS::SecretsManager::Secret
+    Properties:
+      Description: "Secret for Aurora Serverless DB"
+      GenerateSecretString:
+        SecretStringTemplate: '{"username":"postgres"}'
+        GenerateStringKey: "password"
+        PasswordLength: 30
+        ExcludeCharacters: " %+~`#$&*()|[]{}:;<>?!'/@\"\\"
+
+#Attach Secret to Aurora Cluster
+  ClaimsReviewDBSecretAttachment:
+    Type: AWS::SecretsManager::SecretTargetAttachment
+    Properties:
+      SecretId: !Ref ClaimsReviewDBSecret
+      TargetId: !Ref ClaimsReviewDBCluster
+      TargetType: AWS::RDS::DBCluster
+
+  ClaimsReviewDBCluster:  
+    Type: AWS::RDS::DBCluster
+    Properties:
+      CopyTagsToSnapshot: true
+      DBClusterParameterGroupName: "default.aurora-postgresql15"
+      DBSubnetGroupName: !Ref ClaimsReviewDBSubnetGroup
+      DatabaseName: !Sub "${ClaimsReviewDatabaseName}"
+      Engine: "aurora-postgresql"
+      EngineVersion: "15.4"
+      EnableHttpEndpoint: true
+      EnableIAMDatabaseAuthentication: true
+      StorageEncrypted: true
+      MasterUsername: !Sub '{{resolve:secretsmanager:${ClaimsReviewDBSecret}:SecretString:username}}'
+      MasterUserPassword: !Sub '{{resolve:secretsmanager:${ClaimsReviewDBSecret}:SecretString:password}}'      
+      Port: 5432
+      ServerlessV2ScalingConfiguration: 
+        MinCapacity: 0.5
+        MaxCapacity: 2
+      VpcSecurityGroupIds:
+      - !GetAtt ClaimsReviewDBSecurityGroup.GroupId
+      Tags:
+        - Key: Name
+          Value: ClaimsReviewDBCluster   
+    UpdateReplacePolicy: Delete
+    DeletionPolicy: Delete
+
+  ClaimsReviewDBInstance:
+    Type: AWS::RDS::DBInstance
+    Properties:
+      DBClusterIdentifier: !Ref ClaimsReviewDBCluster
+      DBInstanceClass: db.serverless
+      Engine: aurora-postgresql
+      PubliclyAccessible: false
+    UpdateReplacePolicy: Delete
+    DeletionPolicy: Delete
+
+# Lambda execution role for schema loading
+  SchemaLoaderLambdaRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole
+      Policies:
+        - PolicyName: SecretsAccess
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - secretsmanager:GetSecretValue
+                  - secretsmanager:DescribeSecret
+                Resource: !Ref ClaimsReviewDBSecret
+              - Effect: Allow
+                Action:
+                  - "rds-data:BatchExecuteStatement"
+                  - "rds-data:BeginTransaction"
+                  - "rds-data:CommitTransaction"
+                  - "rds-data:ExecuteStatement"
+                  - "rds-data:RollbackTransaction"
+                  - "rds:DescribeDBClusters"
+                Resource: !GetAtt ClaimsReviewDBCluster.DBClusterArn
+              - Effect: Allow
+                Action:
+                  - "s3:GetObject*"
+                  - "s3:GetBucket*"
+                  - "s3:List*"
+                Resource: 
+                  - !Sub 
+                    - "arn:aws:s3:::${AssetsBucketName}/*"
+                    - AssetsBucketName: !FindInMap [RegionMap, !Ref 'AWS::Region', AssetsBucket]
+                  - !Sub 
+                    - "arn:aws:s3:::${AssetsBucketName}"
+                    - AssetsBucketName: !FindInMap [RegionMap, !Ref 'AWS::Region', AssetsBucket]
+
+  # Lambda function to load schema
+  SchemaLoaderLambda:
+    Type: AWS::Lambda::Function
+    DependsOn:
+         - CloudformationVpcEndoint
+         - CloudWatchLogsVpcEndoint
+         - RdsDataVpcEndoint
+         - SecretsManagerVpcEndoint
+    Properties:
+      Description: Lambda function to setup initial data tables and sample data
+      Handler: index.handler
+      Runtime: python3.11
+      MemorySize: 128
+      Timeout: 600
+      Role: !GetAtt SchemaLoaderLambdaRole.Arn
+      VpcConfig:
+        SubnetIds:
+          - !Ref BDAWorkshopPrivateSubnet1
+          - !Ref BDAWorkshopPrivateSubnet2
+        SecurityGroupIds:
+          - !Ref VPCLambdaSecurityGroup
+      ReservedConcurrentExecutions: 1
+      Layers:
+        - !Ref ClaimsReviewLambdaLayer
+      Code: 
+        S3Bucket: !FindInMap [RegionMap, !Ref 'AWS::Region', AssetsBucket]
+        S3Key: c64e3606-ab68-4521-81ea-b2eb36c993b9/cfn-assets/lambda-functions/schema-loader.zip
+      Environment:
+        Variables:
+          CLUSTER_ARN: !GetAtt ClaimsReviewDBCluster.DBClusterArn
+          SECRET_ARN: !Ref ClaimsReviewDBSecret
+          DATABASE_NAME: !Ref ClaimsReviewDatabaseName
+          CREATE_SCHEMA_FILE: !Sub 
+            - "s3://${AssetsBucketName}/c64e3606-ab68-4521-81ea-b2eb36c993b9/schema_loader/create_database_schema.sql"
+            - AssetsBucketName: !FindInMap [RegionMap, !Ref 'AWS::Region', AssetsBucket]
+          DELETE_SCHEMA_FILE: !Sub 
+            - "s3://${AssetsBucketName}/c64e3606-ab68-4521-81ea-b2eb36c993b9/schema_loader/delete_database_schema.sql"
+            - AssetsBucketName: !FindInMap [RegionMap, !Ref 'AWS::Region', AssetsBucket]
+          INITIAL_DATA_FILE:  !Sub 
+            - "s3://${AssetsBucketName}/c64e3606-ab68-4521-81ea-b2eb36c993b9/schema_loader/initial_data.sql"
+            - AssetsBucketName: !FindInMap [RegionMap, !Ref 'AWS::Region', AssetsBucket]
+
+
+  # Custom resource to trigger schema loading
+  SchemaLoader:
+    Type: Custom::SchemaLoader
+    DependsOn: ClaimsReviewDBInstance
+    Properties:
+      ServiceToken: !GetAtt SchemaLoaderLambda.Arn
+      SecretArn: !Ref ClaimsReviewDBSecret
+      ServiceTimeout: 180
+
+  EncryptionPolicy:
+    Type: AWS::OpenSearchServerless::SecurityPolicy
+    Properties:
+      Name: bdaworkshop-vectorstore-ep
+      Type: encryption
+      Description: Encryption policy for claims vector collection
+      Policy: !Sub >-
+        {
+          "Rules":[
+            {
+              "ResourceType":"collection",
+              "Resource":["collection/${ClaimsVectorStoreCollectionName}"]
+            }
+          ],
+            "AWSOwnedKey":true
+        }
+
+  SecurityPolicy:
+    Type: AWS::OpenSearchServerless::SecurityPolicy
+    Properties:
+      Name: bdaworkshop-vectorstore-np
+      Type: network
+      Description: Network policy for claims review collections
+      Policy: !Sub >-
+        [
+            {
+                "Description": "Bedrock KB access for claims review collection",
+                "Rules": [
+                    {
+                        "ResourceType": "collection",
+                        "Resource": [
+                            "collection/${ClaimsVectorStoreCollectionName}"
+                        ]
+                    }
+                ],
+                "AllowFromPublic": false,
+                "SourceServices": [
+                    "bedrock.amazonaws.com"
+                ]
+            },
+            {
+                "Description": "VPCE access for claims review collection",
+                "Rules": [
+                    {
+                        "ResourceType": "collection",
+                        "Resource": [
+                            "collection/${ClaimsVectorStoreCollectionName}"
+                        ]
+                    }
+                ],
+                "AllowFromPublic": false,
+                "SourceVPCEs": [
+                    "${ClaimsVectorStoreVPCEndpoint}"
+                ]
+            }
+        ]
+
+  AccessPolicy:
+    Type: AWS::OpenSearchServerless::AccessPolicy
+    Properties:
+      Name: bdaworkshop-vectorstore-ap
+      Type: data
+      Description: Access policy for example collection
+      Policy: 
+        !Sub >-
+            [
+              {
+                  "Description": "Access for Users",
+                  "Rules": [
+                      {
+                          "ResourceType": "collection",
+                          "Resource": [
+                              "collection/${ClaimsVectorStoreCollectionName}"
+                          ],
+                          "Permission": [
+                            "aoss:CreateCollectionItems",
+                            "aoss:DeleteCollectionItems",
+                            "aoss:UpdateCollectionItems",
+                            "aoss:DescribeCollectionItems"
+                          ]
+                      },
+                      {
+                          "ResourceType": "index",
+                          "Resource": [
+                              "index/${ClaimsVectorStoreCollectionName}/*"
+                          ],
+                          "Permission": [
+                            "aoss:CreateIndex",
+                            "aoss:UpdateIndex",
+                            "aoss:DeleteIndex",
+                            "aoss:DescribeIndex",
+                            "aoss:ReadDocument",
+                            "aoss:WriteDocument"
+                          ]
+                      }                      
+                  ],
+                  "Principal": [
+                      "${VectorStoreIndexCreationLambdaRole.Arn}"
+                  ]
+              }
+            ]
+
+# Lambda execution role for schema loading
+  VectorStoreIndexCreationLambdaRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole
+      Policies:
+        - PolicyName: OSSPolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+            - Effect: Allow
+              Action:
+              - aoss:APIAccessAll
+              Resource: !Sub arn:aws:aoss:${AWS::Region}:${AWS::AccountId}:collection/*
+              Sid: OpenSearchServerlessAPIAccessAllStatement
+  
+  VectorStoreIndexCreationLambdaFunction:
+    Type: AWS::Lambda::Function
+    DependsOn:
+         - CloudformationVpcEndoint
+         - CloudWatchLogsVpcEndoint
+         - ClaimsVectorStoreVPCEndpoint
+    Properties:
+      Runtime: python3.11
+      Handler: index.lambda_handler
+      MemorySize: 128
+      Timeout: 600
+      Role: !GetAtt VectorStoreIndexCreationLambdaRole.Arn
+      VpcConfig:
+        SubnetIds:
+          - !Ref BDAWorkshopPrivateSubnet1
+          - !Ref BDAWorkshopPrivateSubnet2
+        SecurityGroupIds:
+          - !Ref VPCLambdaSecurityGroup
+      ReservedConcurrentExecutions: 1
+      Layers:
+        - !Ref ClaimsReviewLambdaLayer
+      Code: 
+        S3Bucket: !FindInMap [RegionMap, !Ref 'AWS::Region', AssetsBucket]
+        S3Key: c64e3606-ab68-4521-81ea-b2eb36c993b9/cfn-assets/lambda-functions/create-vector-index.zip
+
+  ClaimsReviewLambdaLayer:
+    Type: AWS::Lambda::LayerVersion
+    Properties:
+      LayerName: claims-review-lambda-layer
+      Description: Dependencies for the claims review stack lambdas
+      Content:
+        S3Bucket: !FindInMap [RegionMap, !Ref 'AWS::Region', AssetsBucket]
+        S3Key: c64e3606-ab68-4521-81ea-b2eb36c993b9/cfn-assets/lambda-layer.zip
+      CompatibleRuntimes:
+        - python3.11
+    Metadata:
+      BuildMethod: python3.11
+
+  CloudWatchLogsVpcEndoint:
+    Type: AWS::EC2::VPCEndpoint
+    Properties:
+      ServiceName: !Sub "com.amazonaws.${AWS::Region}.logs"
+      VpcEndpointType: Interface
+      VpcId: !Ref BDAWorkshopVPC
+      PrivateDnsEnabled: true
+      SubnetIds:
+      - !Ref BDAWorkshopPrivateSubnet1
+      - !Ref BDAWorkshopPrivateSubnet2
+      SecurityGroupIds:
+      - !Ref VPCEndpointSecurityGroup
+
+  CloudformationVpcEndoint:
+    Type: AWS::EC2::VPCEndpoint
+    Properties:
+      ServiceName: !Sub "com.amazonaws.${AWS::Region}.cloudformation"
+      VpcEndpointType: Interface
+      VpcId: !Ref BDAWorkshopVPC
+      PrivateDnsEnabled: true
+      SubnetIds:
+      - !Ref BDAWorkshopPrivateSubnet1
+      - !Ref BDAWorkshopPrivateSubnet2
+      SecurityGroupIds:
+      - !Ref VPCEndpointSecurityGroup
+
+  RdsDataVpcEndoint:
+    Type: AWS::EC2::VPCEndpoint
+    Properties:
+      ServiceName: !Sub "com.amazonaws.${AWS::Region}.rds-data"
+      VpcEndpointType: Interface
+      VpcId: !Ref BDAWorkshopVPC
+      PrivateDnsEnabled: true
+      SubnetIds:
+      - !Ref BDAWorkshopPrivateSubnet1
+      - !Ref BDAWorkshopPrivateSubnet2
+      SecurityGroupIds:
+      - !Ref VPCEndpointSecurityGroup
+
+  SecretsManagerVpcEndoint:
+    Type: AWS::EC2::VPCEndpoint
+    Properties:
+      ServiceName: !Sub "com.amazonaws.${AWS::Region}.secretsmanager"
+      VpcEndpointType: Interface
+      VpcId: !Ref BDAWorkshopVPC
+      PrivateDnsEnabled: true
+      SubnetIds:
+      - !Ref BDAWorkshopPrivateSubnet1
+      - !Ref BDAWorkshopPrivateSubnet2
+      SecurityGroupIds:
+      - !Ref VPCEndpointSecurityGroup
+
+  SageMakerVpcEndoint:
+    Type: AWS::EC2::VPCEndpoint
+    Properties:
+      ServiceName: !Sub "com.amazonaws.${AWS::Region}.sagemaker.api"
+      VpcEndpointType: Interface
+      VpcId: !Ref BDAWorkshopVPC
+      PrivateDnsEnabled: true
+      SubnetIds:
+      - !Ref BDAWorkshopPrivateSubnet1
+      - !Ref BDAWorkshopPrivateSubnet2
+      SecurityGroupIds:
+      - !Ref VPCEndpointSecurityGroup
+
+  ClaimsVectorStoreVPCEndpoint:
+    Type: AWS::OpenSearchServerless::VpcEndpoint
+    Properties:
+      Name: lambda-opensearch-endpoint
+      VpcId: !Ref BDAWorkshopVPC
+      SubnetIds: 
+        - !Ref BDAWorkshopPrivateSubnet1 
+        - !Ref BDAWorkshopPrivateSubnet2
+      SecurityGroupIds: 
+        - !Ref VPCEndpointSecurityGroup
+
+  ClaimsVectorStoreCollection:
+    Type: AWS::OpenSearchServerless::Collection
+    Properties:
+      Name: !Ref ClaimsVectorStoreCollectionName
+      Description: Claims Review Vector Store
+      Type: VECTORSEARCH
+    DependsOn:
+      - EncryptionPolicy  
+      - SecurityPolicy
+      - AccessPolicy
+
+  # Custom resource to trigger schema loading
+  VectorStoreIndexCreation:
+    Type: Custom::ClaimsVectorStoreIndexCreation
+    Properties:
+      ServiceToken: !GetAtt VectorStoreIndexCreationLambdaFunction.Arn
+      AOSSHost: !GetAtt ClaimsVectorStoreCollection.CollectionEndpoint
+      AOSSIndexName: !Ref AmazonOpenSearchIndexName
+      ServiceTimeout: 180
+
+  AgentServiceRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service:
+            - bedrock.amazonaws.com
+          Action:
+          - sts:AssumeRole
+          Condition:
+            StringEquals:
+              aws:SourceAccount:
+                Fn::Sub: ${AWS::AccountId}
+      Policies:
+      - PolicyName: KBRetrieveGenerate
+        PolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+          - Effect: Allow
+            Action:
+            - bedrock:Retrieve
+            - bedrock:RetrieveAndGenerate
+            Resource: !Sub arn:aws:bedrock:${AWS::Region}:${AWS::AccountId}:knowledge-base/*
+            Sid: BedrockRetrieveGenerateStatement
+      - PolicyName: InvokeLambda
+        PolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+          - Effect: Allow
+            Action:
+            - lambda:InvokeFunction
+            Resource: !Sub "arn:aws:${AWS::Region}:${AWS::AccountId}:function:*"
+            Sid: LambdaInvokeFunctionStatement
+      - PolicyName: CrossRegionInferenceAccess
+        PolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+          - Effect: Allow
+            Action:
+            - bedrock:InvokeModel*
+            - bedrock:CreateInferenceProfile
+            Resource:
+            - !Sub arn:aws:bedrock:us-east-1::foundation-model/anthropic.claude-3-5-haiku-20241022-v1:0
+            - !Sub arn:aws:bedrock:us-east-2::foundation-model/anthropic.claude-3-5-haiku-20241022-v1:0
+            - !Sub arn:aws:bedrock:us-west-2::foundation-model/anthropic.claude-3-5-haiku-20241022-v1:0
+            - !Sub arn:aws:bedrock:${AWS::Region}:${AWS::AccountId}:inference-profile/*
+            - !Sub arn:aws:bedrock:${AWS::Region}:${AWS::AccountId}:application-inference-profile/*
+            Sid: InferenceCreateStatement
+          - Effect: Allow
+            Action:
+            - bedrock:GetInferenceProfile
+            - bedrock:ListInferenceProfiles
+            - bedrock:DeleteInferenceProfile
+            - bedrock:TagResource
+            - bedrock:UntagResource
+            - bedrock:ListTagsForResource
+            Resource:
+            - !Sub arn:aws:bedrock:${AWS::Region}:${AWS::AccountId}:inference-profile/*
+            - !Sub arn:aws:bedrock:${AWS::Region}:${AWS::AccountId}:application-inference-profile/*
+            Sid: InferenceManagementStatement
+
+  KBServiceRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service:
+            - bedrock.amazonaws.com
+          Action:
+          - sts:AssumeRole
+          Condition:
+            StringEquals:
+              aws:SourceAccount:
+                Fn::Sub: ${AWS::AccountId}
+            ArnLike:
+              aws:SourceArn:
+                Fn::Sub: arn:aws:bedrock:${AWS::Region}:${AWS::AccountId}:knowledge-base/*
+      Policies:
+      - PolicyName: FoundationModelPolicy
+        PolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+          - Effect: Allow
+            Action:
+            - bedrock:InvokeModel
+            Resource:
+              Fn::Sub: arn:aws:bedrock:${AWS::Region}::foundation-model/*
+            Sid: BedrockInvokeModelStatement
+          - Effect: Allow
+            Action:
+            - bedrock:ListFoundationModels
+            Resource: !Sub arn:aws:bedrock:${AWS::Region}::foundation-model/*
+            Sid: BedrockListModelsStatement
+      - PolicyName: OSSPolicy
+        PolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+          - Effect: Allow
+            Action:
+            - aoss:APIAccessAll
+            Resource: 
+              !Sub
+                - arn:aws:aoss:${AWS::Region}:${AWS::AccountId}:collection/${CollectionId}
+                - CollectionId: !GetAtt ClaimsVectorStoreCollection.Id
+            Sid: OpenSearchServerlessAPIAccessAllStatement
+      - PolicyName: S3Policy
+        PolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+          - Effect: Allow
+            Action: 
+            - s3:GetObject
+            - s3:ListBucket
+            - s3:DeleteObject
+            - s3:PutObject
+            Resource: 
+              - arn:aws:s3:::sagemaker*/*
+              - arn:aws:s3:::sagemaker*
+            Condition:
+              StringEquals:
+                aws:ResourceAccount: !Sub ${AWS::AccountId}
+            Sid: S3Permissions                         
+      - PolicyName: BDAInvoke
+        PolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+          - Effect: Allow
+            Action:
+            - bedrock:InvokeDataAutomationAsync
+            Resource: 
+            - !Sub arn:aws:bedrock:${AWS::Region}:aws:data-automation-project/public-default
+            - !Sub arn:aws:bedrock:us-east-1:${AWS::AccountId}:data-automation-profile/us.data-automation-v1
+            - !Sub arn:aws:bedrock:us-east-2:${AWS::AccountId}:data-automation-profile/us.data-automation-v1
+            - !Sub arn:aws:bedrock:us-west-1:${AWS::AccountId}:data-automation-profile/us.data-automation-v1
+            - !Sub arn:aws:bedrock:us-west-2:${AWS::AccountId}:data-automation-profile/us.data-automation-v1
+      - PolicyName: BDAGetStatement
+        PolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+          - Effect: Allow
+            Action:
+            - bedrock:InvokeDataAutomationAsync
+            Resource: 
+            - !Sub arn:aws:bedrock:${AWS::Region}:${AWS::AccountId}:data-automation-invocation/*
+
+  ClaimsReviewAgentActionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole
+      Policies:
+        - PolicyName: LambdaAOSSAccess
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - s3:GetObject*
+                  - s3:GetBucket*
+                  - s3:List*
+                Resource: 
+                - arn:aws:s3:::sagemaker*
+                Condition:
+                  StringEquals:
+                    aws:ResourceAccount: !Sub ${AWS::AccountId}
+              - Effect: Allow
+                Action:
+                  - rds-data:BatchExecuteStatement
+                  - rds-data:BeginTransaction
+                  - rds-data:CommitTransaction
+                  - rds-data:ExecuteStatement
+                  - rds-data:RollbackTransaction
+                Resource: 
+                - !GetAtt ClaimsReviewDBCluster.DBClusterArn
+              - Effect: Allow
+                Action:
+                  - secretsmanager:GetSecretValue
+                  - secretsmanager:DescribeSecret
+                Resource: !Ref ClaimsReviewDBSecret
+
+  ClaimsReviewAgentActionLambdaFunction:
+    Type: AWS::Lambda::Function
+    DependsOn:
+      - CloudformationVpcEndoint
+      - CloudWatchLogsVpcEndoint
+      - RdsDataVpcEndoint
+      - SecretsManagerVpcEndoint
+    Properties:
+      Runtime: python3.11
+      Handler: index.lambda_handler
+      MemorySize: 128
+      Timeout: 600
+      Role: !GetAtt ClaimsReviewAgentActionRole.Arn
+      VpcConfig:
+        SubnetIds:
+          - !Ref BDAWorkshopPrivateSubnet1
+          - !Ref BDAWorkshopPrivateSubnet2
+        SecurityGroupIds:
+          - !Ref VPCLambdaSecurityGroup
+      Layers:
+        - !Ref ClaimsReviewLambdaLayer
+      Code: 
+        S3Bucket: !FindInMap [RegionMap, !Ref 'AWS::Region', AssetsBucket]
+        S3Key: c64e3606-ab68-4521-81ea-b2eb36c993b9/cfn-assets/lambda-functions/claims-review-agent-action.zip
+      Environment:
+        Variables:
+          CLAIMS_DB_CLUSTER_ARN: !GetAtt ClaimsReviewDBCluster.DBClusterArn
+          CLAIMS_DB_DATABASE_NAME: !Ref ClaimsReviewDatabaseName
+          CLAIMS_DB_CREDENTIALS_SECRET_ARN: !Ref ClaimsReviewDBSecret
+
+  KBAccessPolicy:
+    Type: AWS::OpenSearchServerless::AccessPolicy
+    Properties:
+      Name: bdaworkshop-vectorstore-kb-ap
+      Type: data
+      Description: Access policy for example collection
+      Policy: 
+        !Sub 
+          - >-
+            [
+              {
+                  "Description": "Access for Users",
+                  "Rules": [
+                      {
+                          "ResourceType": "collection",
+                          "Resource": [
+                              "collection/${ClaimsVectorStoreCollectionName}"
+                          ],
+                          "Permission": [
+                            "aoss:CreateCollectionItems",
+                            "aoss:DeleteCollectionItems",
+                            "aoss:UpdateCollectionItems",
+                            "aoss:DescribeCollectionItems"
+                          ]
+                      },
+                      {
+                          "ResourceType": "index",
+                          "Resource": [
+                              "index/${ClaimsVectorStoreCollectionName}/*"
+                          ],
+                          "Permission": [
+                            "aoss:CreateIndex",
+                            "aoss:UpdateIndex",
+                            "aoss:DeleteIndex",
+                            "aoss:DescribeIndex",
+                            "aoss:ReadDocument",
+                            "aoss:WriteDocument"
+                          ]
+                      }                      
+                  ],
+                  "Principal": [
+                      "${KBServiceRole.Arn}"
+                  ]
+              }
+            ]
+          - ClaimsVectorStoreCollectionName: !Ref ClaimsVectorStoreCollectionName
+
+  SageMakerExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument: 
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal: 
+              Service: 
+                - sagemaker.amazonaws.com
+            Action: 
+              - sts:AssumeRole
+      Path: /
+      ManagedPolicyArns:
+        - 'arn:aws:iam::aws:policy/AmazonSageMakerReadOnly'
+      Policies: 
+        - PolicyName: s3-access
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action:
+                  - s3:GetObject
+                  - s3:PutObject
+                  - s3:DeleteObject
+                  - s3:ListBucket
+                  - s3:CreateBucket
+                Resource: 
+                  - arn:aws:s3:::sagemaker*
+                  - arn:aws:s3:::sagemaker*/*
+                  - arn:aws:s3:::bedrock-data-automation-prod-assets*/*
+        - PolicyName: iam-access
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action:
+                  - iam:GetRole
+                  - iam:GetRolePolicy
+                  - iam:PassRole
+                Resource: !Sub arn:aws:iam::${AWS::AccountId}:role/*
+        - PolicyName: bedrock-access
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Sid: BedrockInvoke
+                Action: bedrock:InvokeModel
+                Resource: !Sub arn:aws:bedrock:${AWS::Region}:${AWS::AccountId}:foundation-model/*
+
+              - Effect: Allow
+                Sid: VisualEditor1
+                Action:
+                  - bedrock:GetAgent*
+                  - bedrock:PrepareAgent
+                  - bedrock:Update*
+                  - bedrock:InvokeAgent
+                  - bedrock:DisassociateAgentKnowledgeBase
+                  - bedrock:AssociateAgentKnowledgeBase
+                Resource:
+                  - !Sub arn:aws:bedrock:${AWS::Region}:${AWS::AccountId}:agent-alias/*
+                  - !Sub arn:aws:bedrock:${AWS::Region}:${AWS::AccountId}:agent/*
+
+              - Effect: Allow
+                Sid: BDAInvoke
+                Action: bedrock:InvokeDataAutomationAsync
+                Resource:
+                  - !Sub arn:aws:bedrock:${AWS::Region}:aws:data-automation-project/public-default
+                  - !Sub arn:aws:bedrock:${AWS::Region}:${AWS::AccountId}:data-automation-project/*
+                  - !Sub arn:aws:bedrock:${AWS::Region}:${AWS::AccountId}:blueprint/*
+                  - !Sub arn:aws:bedrock:us-east-1:${AWS::AccountId}:data-automation-profile/us.data-automation-v1
+                  - !Sub arn:aws:bedrock:us-east-2:${AWS::AccountId}:data-automation-profile/us.data-automation-v1
+                  - !Sub arn:aws:bedrock:us-west-1:${AWS::AccountId}:data-automation-profile/us.data-automation-v1
+                  - !Sub arn:aws:bedrock:us-west-2:${AWS::AccountId}:data-automation-profile/us.data-automation-v1
+                  - !Sub arn:aws:bedrock:${AWS::Region}:${AWS::AccountId}:data-automation-profile/us.data-automation-v1
+
+              - Effect: Allow
+                Sid: BDABlueprintsAndProjects
+                Action:
+                  - bedrock:CreateDataAutomationProject
+                  - bedrock:UpdateDataAutomationProject
+                  - bedrock:DeleteDataAutomationProject
+                  - bedrock:GetDataAutomationProject
+                  - bedrock:GetDataAutomationStatus
+                  - bedrock:GetBlueprint
+                  - bedrock:DeleteBlueprint
+                  - bedrock:ListBlueprints
+                  - bedrock:ListDataAutomationProjects
+                  - bedrock:UpdateBlueprint
+                Resource:
+                  - !Sub arn:aws:bedrock:${AWS::Region}:${AWS::AccountId}:blueprint/*
+                  - !Sub arn:aws:bedrock:${AWS::Region}:aws:blueprint/*
+                  - !Sub arn:aws:bedrock:${AWS::Region}:${AWS::AccountId}:data-automation-project/*
+                  - !Sub arn:aws:bedrock:${AWS::Region}:${AWS::AccountId}:data-automation-invocation/*
+
+              - Effect: Allow
+                Sid: KBDataSources
+                Action:
+                  - bedrock:StartIngestionJob
+                  - bedrock:CreateDataSource
+                  - bedrock:ListDataSources
+                  - bedrock:GetKnowledgeBase
+                  - bedrock:GetKnowledgeBaseDocuments
+                  - bedrock:IngestKnowledgeBaseDocuments
+                  - bedrock:GetDataSource
+                Resource: !Sub arn:aws:bedrock:${AWS::Region}:${AWS::AccountId}:knowledge-base/*
+
+              - Effect: Allow
+                Sid: BedrockAgentsAndAliases
+                Action:
+                  - bedrock:Delete*
+                  - bedrock:Create*
+                  - bedrock:ListAgent*
+                Resource:
+                  - !Sub arn:aws:bedrock:${AWS::Region}:${AWS::AccountId}:agent-alias/*
+                  - !Sub arn:aws:bedrock:${AWS::Region}:${AWS::AccountId}:agent/*
+
+              - Effect: Allow
+                Sid: BDABlueprints
+                Action:
+                  - bedrock:CreateBlueprint
+                  - bedrock:GetBlueprintRecommendation
+                Resource: !Sub arn:aws:bedrock:${AWS::Region}:${AWS::AccountId}:blueprint/*
+
+              - Effect: Allow
+                Sid: BDAKBCreate
+                Action:
+                  - bedrock:CreateKnowledgeBase
+                Resource: !Sub arn:aws:bedrock:${AWS::Region}:${AWS::AccountId}:knowledge-base/*
+
+              - Effect: Allow
+                Sid: VisualEditor7
+                Action:
+                  - bedrock:ListKnowledgeBases
+                Resource: !Sub arn:aws:bedrock:${AWS::Region}:${AWS::AccountId}:*
+        - PolicyName: bedrock-deny
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Deny
+                Action:
+                  - bedrock:CreateModelCustomizationJob
+                  - bedrock:StopModelCustomizationJob
+                  - bedrock:GetModelCustomizationJob
+                  - bedrock:ListModelCustomizationJobs
+                Resource: arn:aws:bedrock:*::foundation-model/*
+        - PolicyName: lambda-access
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action:
+                  - lambda:AddPermission
+                Resource: !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:*
+        - PolicyName: sagemaker-access
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Sid: SMStudioCreatePresignedDomainUrlForUserProfile
+                Effect: Allow
+                Action:
+                  - sagemaker:CreatePresignedDomainUrl
+                Resource: !Sub arn:aws:sagemaker:*:${AWS::AccountId}:user-profile/*/*
+
+              - Sid: SMStudioCreateApp
+                Effect: Allow
+                Action:
+                  - sagemaker:CreateApp
+                  - sagemaker:DeleteApp
+                Resource: !Sub arn:aws:sagemaker:${AWS::Region}:${AWS::AccountId}:app/*/*/*/*
+                Condition:
+                  'Null':
+                    sagemaker:OwnerUserProfileArn: true
+
+              - Sid: SMStudioAppPermissionsTagOnCreate
+                Effect: Allow
+                Action:
+                  - sagemaker:AddTags
+                Resource: !Sub arn:aws:sagemaker:${AWS::Region}:${AWS::AccountId}:*/*
+                Condition:
+                  'Null':
+                    sagemaker:TaggingAction: "false"
+
+              - Sid: SMStudioRestrictSpacesToOwnerUserProfile
+                Effect: Allow
+                Action:
+                  - sagemaker:CreateSpace
+                  - sagemaker:UpdateSpace
+                  - sagemaker:DeleteSpace
+                Resource: !Sub arn:aws:sagemaker:${AWS::Region}:${AWS::AccountId}:space/*/*
+
+              - Sid: SMStudioRestrictCreatePrivateSpaceAppsToOwnerUserProfile
+                Effect: Allow
+                Action:
+                  - sagemaker:CreateApp
+                  - sagemaker:DeleteApp
+                Resource: !Sub arn:aws:sagemaker:${AWS::Region}:${AWS::AccountId}:app/*/*
+        - PolicyName: cloudformation-access
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action:
+                  - cloudformation:ListStacks
+                  - cloudformation:DescribeStacks
+                Resource: !Sub arn:aws:cloudformation:*:${AWS::AccountId}:stack/*/*
+
+  StudioDomain:
+    Type: AWS::SageMaker::Domain
+    Properties: 
+      AppNetworkAccessType: PublicInternetOnly
+      AuthMode: IAM
+      DefaultUserSettings: 
+        ExecutionRole: !GetAtt SageMakerExecutionRole.Arn
+        StudioWebPortal: ENABLED
+        StudioWebPortalSettings:
+          HiddenAppTypes:
+            - Canvas
+            - JupyterServer # Studio Classic
+            - RStudioServerPro
+            - TensorBoard
+            - DetailedProfiler
+          HiddenMlTools:
+            - FeatureStore
+            - EmrClusters
+      DomainName: !Ref DomainName
+      SubnetIds: 
+      - !Ref BDAWorkshopPrivateSubnet1
+      - !Ref BDAWorkshopPrivateSubnet2
+      VpcId: !Ref BDAWorkshopVPC
+      DefaultSpaceSettings: 
+        ExecutionRole: !GetAtt SageMakerExecutionRole.Arn
+      Tags:
+        - Key: 'env'
+          Value: 'aws-bedrock-bda'
+        - Key: 'version'
+          Value: '1.0'
+
+  UserProfile:
+    Type: AWS::SageMaker::UserProfile
+    Properties: 
+      DomainId: !GetAtt StudioDomain.DomainId
+      UserProfileName: !Ref UserProfileName
+      UserSettings:
+        ExecutionRole: !GetAtt SageMakerExecutionRole.Arn
+      Tags:
+        - Key: 'env'
+          Value: 'aws-bedrock-bda'
+        - Key: 'version'
+          Value: '1.0'
+        - Key: 'user'
+          Value: !Ref UserProfileName
+
+  JupyterLabSpace:
+    Type: AWS::SageMaker::Space
+    DependsOn:
+      - UserProfile
+    Properties:
+      DomainId: !GetAtt StudioDomain.DomainId
+      SpaceName: !Ref SpaceName
+      SpaceSettings:
+        AppType: JupyterLab
+        SpaceStorageSettings:
+          EbsStorageSettings: 
+             EbsVolumeSizeInGb: 25
+        JupyterLabAppSettings:
+          DefaultResourceSpec: 
+            InstanceType: !FindInMap
+              - RegionMap
+              - !Ref "AWS::Region"
+              - instance
+            #SageMakerImageArn: !FindInMap
+            #  - RegionMap
+            #  - !Ref "AWS::Region"
+            #  - jupyter
+      SpaceSharingSettings:
+        SharingType: Private
+      OwnershipSettings:
+        OwnerUserProfileName: !Ref UserProfileName
+
+  DeleteEFSVolumeLambdaRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole
+      Policies:
+        - PolicyName: SageMakerDomainPermissions
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - sagemaker:DescribeDomain
+                Resource:
+                  - !Sub 'arn:aws:sagemaker:${AWS::Region}:${AWS::AccountId}:domain/*'
+        - PolicyName: LambdaDeleteEFSVolumePolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - elasticfilesystem:DeleteFileSystem
+                  - elasticfilesystem:DeleteMountTarget
+                  - elasticfilesystem:DeleteAccessPoint
+                  - elasticfilesystem:DeleteFileSystemPolicy
+                  - elasticfilesystem:DescribeFileSystems
+                  - elasticfilesystem:DescribeMountTargets
+                Resource:
+                  - !Sub 'arn:aws:elasticfilesystem:${AWS::Region}:${AWS::AccountId}:file-system/*'
+  
+  DeleteEFSVolumeLambda:
+    Type: AWS::Lambda::Function
+    DependsOn:
+      - CloudformationVpcEndoint
+      - CloudWatchLogsVpcEndoint
+      - SageMakerVpcEndoint
+    Properties:
+      Handler: index.lambda_handler
+      Description: "Delete all objects in S3 bucket"
+      Runtime: python3.11
+      MemorySize: 128
+      Timeout: 600
+      Role: !GetAtt DeleteEFSVolumeLambdaRole.Arn
+      VpcConfig:
+        SubnetIds:
+          - !Ref BDAWorkshopPrivateSubnet1
+          - !Ref BDAWorkshopPrivateSubnet2
+        SecurityGroupIds:
+          - !Ref VPCLambdaSecurityGroup
+      ReservedConcurrentExecutions: 1
+      Layers:
+        - !Ref ClaimsReviewLambdaLayer
+      Code: 
+        S3Bucket: !FindInMap [RegionMap, !Ref 'AWS::Region', AssetsBucket]
+        S3Key: c64e3606-ab68-4521-81ea-b2eb36c993b9/cfn-assets/lambda-functions/delete-efs-volume.zip
+
+
+  DeleteEFSVolume:
+    Type: Custom::DeleteEFSVolume
+    DependsOn:
+         - BDAWorkshopPrivateSubnet1
+         - BDAWorkshopPrivateSubnet2         
+    Properties:
+      ServiceToken: !GetAtt DeleteEFSVolumeLambda.Arn
+      DomainId: !Ref StudioDomain
+      ServiceTimeout: 180
+
+
+  ####################################################################################################################
+  #### LifeCycle Configuration to download notebooks
+  ####################################################################################################################
+
+  LifeCycleConfigLambdaRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+            Action:
+              - 'sts:AssumeRole'
+      Path: /
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole
+      Policies:
+        - PolicyName: !Sub 'LifeCycleConfigLambdaPolicy-${AWS::StackName}'
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action:
+                  - 'sagemaker:CreateStudioLifecycleConfig'
+                  - 'sagemaker:DeleteStudioLifecycleConfig'
+                Resource: !Sub 'arn:aws:sagemaker:${AWS::Region}:${AWS::AccountId}:studio-lifecycle-config/*'
+              - Effect: Allow
+                Action:
+                  - 'sagemaker:UpdateUserProfile'
+                  - 'sagemaker:DeleteUserProfile'
+                Resource: !Sub 'arn:aws:sagemaker:${AWS::Region}:${AWS::AccountId}:user-profile/*'
+
+  LifeCycleConfigLambda:
+    Type: AWS::Lambda::Function
+    DependsOn:
+      - UserProfile
+      - SageMakerVpcEndoint
+      - CloudformationVpcEndoint
+      - CloudWatchLogsVpcEndoint
+    Properties:
+      Handler: index.lambda_handler
+      Description: Add LifeCycle Configuration to copy NB files to Studio
+      Runtime: python3.11
+      MemorySize: 128
+      Timeout: 600
+      Role: !GetAtt LifeCycleConfigLambdaRole.Arn
+      VpcConfig:
+        SubnetIds:
+          - !Ref BDAWorkshopPrivateSubnet1
+          - !Ref BDAWorkshopPrivateSubnet2
+        SecurityGroupIds:
+          - !Ref VPCLambdaSecurityGroup
+      ReservedConcurrentExecutions: 1
+      Layers:
+        - !Ref ClaimsReviewLambdaLayer
+      Code:
+        S3Bucket: !FindInMap [RegionMap, !Ref 'AWS::Region', AssetsBucket]
+        S3Key: c64e3606-ab68-4521-81ea-b2eb36c993b9/cfn-assets/lambda-functions/lifecycle-configuration.zip
+
+
+  LifeCycleConfigLambdaInvoke:
+    Type: AWS::CloudFormation::CustomResource
+    Version: "1.0"
+    Properties:
+      ServiceToken: !GetAtt LifeCycleConfigLambda.Arn
+      ServiceTimeout: 180
+      UserProfile: !Ref UserProfile
+      LCCName: !Sub ${AWS::StackName}-clone-repo
+
+Outputs:
+  KBServiceRole:
+    Description: KB Service Role
+    Value: !GetAtt KBServiceRole.Arn
+  
+  AgentServiceRole:
+    Description: Agent Service Role
+    Value: !GetAtt AgentServiceRole.Arn
+  
+  ClaimsReviewAgentActionLambdaFunction:
+    Description: Claims Review Agent Action Lambda Function
+    Value: !GetAtt ClaimsReviewAgentActionLambdaFunction.Arn
+
+  ClaimsReviewDatabaseName:
+    Value: !Ref ClaimsReviewDatabaseName
+    Description: "Aurora Serverless Database Name"
+    Export:
+      Name: ClaimsDBDatabaseName
+
+  ClaimsReviewDBEndpoint:
+    Value: !GetAtt ClaimsReviewDBCluster.Endpoint.Address
+    Description: "Claims Review DB Endpoint"
+    Export:
+      Name: !Sub "${AWS::StackName}-DBEndpoint"
+
+  ClaimsReviewDBClusterArn:
+    Value: !GetAtt ClaimsReviewDBCluster.DBClusterArn
+    Description: "Claims Review DB Cluster Arn"
+    Export:
+      Name: "ClaimsDBClusterArn"
+    
+  ClaimsReviewDBPort:
+    Value: !GetAtt ClaimsReviewDBCluster.Endpoint.Port
+    Description: "Claims Review DB Port"
+    Export:
+      Name: !Sub "${AWS::StackName}-DBPort"
+
+  ClaimsReviewDBSecretArn:
+    Value: !Ref ClaimsReviewDBSecret
+    Description: "Secret ARN for database credentials"
+    Export:
+      Name: "ClaimsDBCredentialsSecretArn"
+
+  BDAWorkshopVPC:
+    Value: !Ref BDAWorkshopVPC
+    Description: BDA Workshop VPC
+    Export:
+      Name: "BDAWorkshopVPC"
+  
+  ClaimsVectorStoreIndexName:
+    Description: Amazon OpenSearch Index Name
+    Value: !Ref AmazonOpenSearchIndexName
+    Export:
+      Name: "ClaimsVectorStoreIndexName"
+
+  ClaimsVectorStoreCollectionArn:
+    Description: Claims Vector Store Collection ARN
+    Value: !GetAtt ClaimsVectorStoreCollection.Arn
+    Export:
+      Name: !Sub "${AWS::StackName}-ClaimsVectorStoreCollectionArn"
+
+  ClaimsVectorStoreCollectionEndpoint:
+    Description: Claims Vector Store Collection Endpoint
+    Value: !GetAtt ClaimsVectorStoreCollection.CollectionEndpoint
+    Export:
+      Name: !Sub "${AWS::StackName}-ClaimsVectorStoreCollectionEndpoint"
+
+  ClaimsVectorStoreCollectionName:
+    Description: Claims Vector Store Collection Name
+    Value: !Ref ClaimsVectorStoreCollectionName
+    Export:
+      Name: "ClaimsVectorStoreCollectionName"

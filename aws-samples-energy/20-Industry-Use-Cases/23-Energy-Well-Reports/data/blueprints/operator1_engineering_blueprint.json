@@ -1,0 +1,167 @@
+{
+	"$schema": "http://json-schema.org/draft-07/schema#",
+	"description": "Blueprint for extracting comprehensive completion data from hydraulic fracturing reports including well details, perforation data, stimulation parameters, and water usage",
+	"class": "Engineering Report",
+	"type": "object",
+	"definitions": {
+		"Completion_Summary": {
+			"type": "object",
+			"properties": {
+				"Stage_Length": {
+					"type": "number",
+					"inferenceType": "explicit",
+					"instruction": "Extract the Stg length for each stage of the frac job"
+				},
+				"Proppant_Volume": {
+					"type": "number",
+					"inferenceType": "explicit",
+					"instruction": "Extract the total proppant volume (K#) pumped for all the stages (STG) of the frac job ony from the wellbore diagram page"
+				}
+			}
+		},
+		"WellIdentification": {
+			"type": "object",
+			"properties": {
+				"API_Number": {
+					"type": "string",
+					"inferenceType": "explicit",
+					"instruction": "Extract the API well number from the wellbore diagram or header section"
+				},
+				"Well_Name": {
+					"type": "string",
+					"inferenceType": "explicit",
+					"instruction": "Extract the complete well name including lease name and well number (e.g., Smith #1H) from the wellbore diagram or header"
+				},
+				"Operator": {
+					"type": "string",
+					"inferenceType": "explicit",
+					"instruction": "Extract the operating company name from the report header or wellbore diagram"
+				},
+				"Field": {
+					"type": "string",
+					"inferenceType": "explicit",
+					"instruction": "Extract the field name where the well is located from the header section"
+				},
+				"County_Parish": {
+					"type": "string",
+					"inferenceType": "explicit",
+					"instruction": "Extract the county or parish name from the well location information"
+				},
+				"State": {
+					"type": "string",
+					"inferenceType": "explicit",
+					"instruction": "Extract the state where the well is located from the header information"
+				},
+				"Spud_Date": {
+					"type": "string",
+					"inferenceType": "explicit",
+					"instruction": "Extract the spud date from the report header"
+				},
+				"Measured_Depth": {
+					"type": "string",
+					"inferenceType": "explicit",
+					"instruction": "Extract the measured depth from the report header"
+				},
+				"Product_Type": {
+					"type": "string",
+					"inferenceType": "explicit",
+					"instruction": "Extract whether this is a oil producing type or gas producing type"
+				}
+			}
+		},
+		"Casing_Summary": {
+			"type": "object",
+			"properties": {
+				"Size": {
+					"type": "string",
+					"inferenceType": "explicit",
+					"instruction": "Extract the casing diameter size from the casing record (i.e. 5 1/2)"
+				},
+				"Weight": {
+					"type": "number",
+					"inferenceType": "explicit",
+					"instruction": "Extract the casing weight from the casing record"
+				},
+				"Depth": {
+					"type": "number",
+					"inferenceType": "explicit",
+					"instruction": "Extract the depth to for the casing record "
+				}
+			}
+		},
+		"Perforation_Data": {
+			"type": "object",
+			"properties": {
+				"Top_Perf": {
+					"type": "number",
+					"inferenceType": "explicit",
+					"instruction": "Extract the top (shallowest) perforation depth in feet MD from the perforation summary or wellbore diagram"
+				},
+				"Bottom_Perf": {
+					"type": "number",
+					"inferenceType": "explicit",
+					"instruction": "Extract the bottom (deepest) perforation depth in feet MD from the perforation summary or wellbore diagram"
+				}
+			}
+		},
+		"Water_Sources": {
+			"type": "object",
+			"properties": {
+				"Source_Name": {
+					"type": "string",
+					"inferenceType": "explicit",
+					"instruction": "Extract the name or identifier of the water source from the water supply section"
+				},
+				"Supply_Type": {
+					"type": "string",
+					"inferenceType": "explicit",
+					"instruction": "Extract the water supply type (public, private, surface water, groundwater) from the water supply section"
+				},
+				"Volume_Used": {
+					"type": "number",
+					"inferenceType": "explicit",
+					"instruction": "Extract the total volume of water used from this source in barrels from the water supply summary"
+				},
+				"Source_Location": {
+					"type": "string",
+					"inferenceType": "explicit",
+					"instruction": "Extract the latitude/longitude coordinates or location description of the water source"
+				}
+			}
+		}
+	},
+	"properties": {
+		"Well_Information": {
+			"$ref": "#/definitions/WellIdentification",
+			"instruction": "Extract all well identification and location information from the report header and wellbore diagram"
+		},
+		"Perforation_Data": {
+			"type": "array",
+			"instruction": "Extract perforation interval data for each stage from the wellbore diagram, including top/bottom depths and stage numbers",
+			"items": {
+				"$ref": "#/definitions/Perforation_Data"
+			}
+		},
+		"Water_Sources": {
+			"type": "array",
+			"instruction": "Extract water supply information from the Hydraulic Fracture Stimulation section including source names, types, volumes, and locations",
+			"items": {
+				"$ref": "#/definitions/Water_Sources"
+			}
+		},
+		"Completion_Summary": {
+			"type": "array",
+			"instruction": "Extract the completion data from the wellbore diagram page for each stage in the fracturing job",
+			"items": {
+				"$ref": "#/definitions/Completion_Summary"
+			}
+		},
+		"Casing_Summary": {
+			"type": "array",
+			"instruction": "Extract the casing details from the report header page.",
+			"items": {
+				"$ref": "#/definitions/Casing_Summary"
+			}
+		}
+	}
+}
