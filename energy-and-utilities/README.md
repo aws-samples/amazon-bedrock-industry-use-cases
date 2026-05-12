@@ -1,6 +1,6 @@
-# Energy
+# Energy & Utilities
 
-This section contains Energy industry use cases demonstrating generative AI applications built with Amazon Bedrock.
+This section contains Energy & Utilities industry use cases demonstrating generative AI applications built with Amazon Bedrock.
 
 ## Contents
 

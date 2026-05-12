@@ -6,8 +6,8 @@ This repository contains pre-built examples to help developers get started with 
 
 - [Auto Manufacturing](auto-manufacturing)
   - [Equipment Monitoring Assistant](auto-manufacturing/chatbot-realtime-smart-monitoring) - An intelligent agent that provides real-time equipment monitoring and troubleshooting through natural language interactions
-- [Energy](energy)
-  - [Well Reports (BDA)](energy/well-reports-bda/) - Document processing for energy well reports using Bedrock Data Automation
+- [Energy & Utilities](energy-and-utilities)
+  - [Well Reports (BDA)](energy-and-utilities/well-reports-bda/) - Document processing for energy well reports using Bedrock Data Automation
 - [Financial Services](financial-services)
   - [Mortgage and Lending (BDA)](financial-services/mortgage-lending-bda/) - Automated mortgage document processing using Bedrock Data Automation
 - [Healthcare & Life Sciences](healthcare-life-sciences)

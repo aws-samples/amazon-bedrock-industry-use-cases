@@ -20,7 +20,7 @@ After completing the intro notebooks, explore these BDA-powered use cases:
 
 - [Mortgage and Lending](../../financial-services/mortgage-lending-bda/)
 - [Medical Claims Processing](../../healthcare-life-sciences/medical-claims-bda/)
-- [Energy Well Reports](../../energy/well-reports-bda/)
+- [Energy Well Reports](../../energy-and-utilities/well-reports-bda/)
 
 ## Contributors
 
