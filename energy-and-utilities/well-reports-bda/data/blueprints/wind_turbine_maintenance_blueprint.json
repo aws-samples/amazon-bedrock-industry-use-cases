@@ -1,0 +1,115 @@
+{
+	"$schema": "http://json-schema.org/draft-07/schema#",
+	"description": "Blueprint for extracting structured data from wind turbine maintenance logs - demonstrates the pattern applies to wind energy",
+	"class": "Maintenance Log",
+	"type": "object",
+	"definitions": {
+		"TurbineIdentification": {
+			"type": "object",
+			"properties": {
+				"Turbine_ID": {
+					"type": "string",
+					"inferenceType": "explicit",
+					"instruction": "Extract the turbine identifier or asset number from the report header"
+				},
+				"Wind_Farm": {
+					"type": "string",
+					"inferenceType": "explicit",
+					"instruction": "Extract the wind farm name from the header"
+				},
+				"Manufacturer": {
+					"type": "string",
+					"inferenceType": "explicit",
+					"instruction": "Extract the turbine manufacturer (e.g., Vestas, Siemens Gamesa, GE) from the equipment details"
+				},
+				"Model": {
+					"type": "string",
+					"inferenceType": "explicit",
+					"instruction": "Extract the turbine model number from the equipment details"
+				},
+				"Rated_Capacity_MW": {
+					"type": "number",
+					"inferenceType": "explicit",
+					"instruction": "Extract the rated capacity in megawatts from the turbine specifications"
+				},
+				"Commission_Date": {
+					"type": "string",
+					"inferenceType": "explicit",
+					"instruction": "Extract the turbine commissioning date from the asset information"
+				}
+			}
+		},
+		"Maintenance_Event": {
+			"type": "object",
+			"properties": {
+				"Event_Date": {
+					"type": "string",
+					"inferenceType": "explicit",
+					"instruction": "Extract the date of the maintenance event from the log entry"
+				},
+				"Event_Type": {
+					"type": "string",
+					"inferenceType": "explicit",
+					"instruction": "Extract the type of maintenance (scheduled, unscheduled, corrective, predictive) from the log"
+				},
+				"Component": {
+					"type": "string",
+					"inferenceType": "explicit",
+					"instruction": "Extract the component serviced (gearbox, generator, blade, yaw system, pitch system, converter) from the work description"
+				},
+				"Downtime_Hours": {
+					"type": "number",
+					"inferenceType": "explicit",
+					"instruction": "Extract the total downtime in hours caused by this maintenance event"
+				},
+				"Description": {
+					"type": "string",
+					"inferenceType": "explicit",
+					"instruction": "Extract the work description or fault description from the maintenance log entry"
+				}
+			}
+		},
+		"Performance_Data": {
+			"type": "object",
+			"properties": {
+				"Availability_Percent": {
+					"type": "number",
+					"inferenceType": "explicit",
+					"instruction": "Extract the turbine availability percentage for the reporting period"
+				},
+				"Capacity_Factor": {
+					"type": "number",
+					"inferenceType": "explicit",
+					"instruction": "Extract the capacity factor from the performance summary"
+				},
+				"Energy_Produced_MWh": {
+					"type": "number",
+					"inferenceType": "explicit",
+					"instruction": "Extract the total energy produced in MWh for the reporting period"
+				},
+				"Mean_Wind_Speed_ms": {
+					"type": "number",
+					"inferenceType": "explicit",
+					"instruction": "Extract the mean wind speed in meters per second for the reporting period"
+				}
+			}
+		}
+	},
+	"properties": {
+		"Turbine_Information": {
+			"$ref": "#/definitions/TurbineIdentification",
+			"instruction": "Extract all turbine identification and specification information from the report header"
+		},
+		"Maintenance_Events": {
+			"type": "array",
+			"instruction": "Extract all maintenance events from the maintenance log table",
+			"items": {
+				"$ref": "#/definitions/Maintenance_Event"
+			}
+		},
+		"Performance_Data": {
+			"$ref": "#/definitions/Performance_Data",
+			"instruction": "Extract performance metrics from the summary section"
+		}
+	}
+}
