@@ -15,7 +15,7 @@ logger = get_logger(__name__)
 
 
 def create_custom_blueprint(
-    blueprint_name: str, session: boto3.Session = None
+    blueprint_name: str, session: boto3.Session = None, blueprint_dir: str = None
 ) -> List[str]:
     """
     Create custom blueprints from JSON schema files.
@@ -23,6 +23,8 @@ def create_custom_blueprint(
     Args:
         blueprint_name: Name of custom blueprint (without .json extension)
         session: boto3.Session object (optional, uses default if None)
+        blueprint_dir: Absolute path to blueprints directory (optional,
+                       defaults to "data/blueprints" relative to cwd)
 
     Returns:
          Blueprint ARN
@@ -35,7 +37,11 @@ def create_custom_blueprint(
         session = boto3.Session()
 
     client = session.client("bedrock-data-automation")
-    blueprint_path = os.path.join("data", "blueprints", f"{blueprint_name}.json")
+
+    if blueprint_dir:
+        blueprint_path = os.path.join(blueprint_dir, f"{blueprint_name}.json")
+    else:
+        blueprint_path = os.path.join("data", "blueprints", f"{blueprint_name}.json")
 
     with open(blueprint_path, encoding="utf-8") as f:
         blueprint_schema = json.load(f)
