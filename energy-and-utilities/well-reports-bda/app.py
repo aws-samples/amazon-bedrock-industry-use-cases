@@ -56,44 +56,6 @@ def sanitize_filename(filename: str) -> str:
     return f"{name}{ext}"
 
 
-def validate_sql_query(query: str) -> tuple:
-    """
-    Validate a SQL query to prevent injection and destructive operations.
-
-    NOTE: This function is retained for backward compatibility but the UI
-    now uses a safe query builder pattern instead of free-text SQL input.
-
-    Returns:
-        (is_valid: bool, error_message: str)
-    """
-    if not query or not query.strip():
-        return False, "Query cannot be empty."
-
-    query_upper = query.upper().strip()
-
-    # Must start with SELECT (read-only)
-    if not query_upper.startswith("SELECT"):
-        return False, "Only SELECT queries are allowed."
-
-    # Block destructive keywords
-    blocked_keywords = {"DROP", "DELETE", "INSERT", "UPDATE", "ALTER", "CREATE",
-                        "TRUNCATE", "REPLACE", "ATTACH", "DETACH", "PRAGMA",
-                        "VACUUM", "REINDEX"}
-    query_words = set(re.findall(r"\b[A-Z]+\b", query_upper))
-    found_blocked = query_words & blocked_keywords
-    if found_blocked:
-        return False, f"Blocked keywords found: {', '.join(found_blocked)}. Only SELECT queries are allowed."
-
-    # Block semicolons (prevent multi-statement injection)
-    if ";" in query.rstrip(";").rstrip():
-        return False, "Multiple statements (semicolons) are not allowed."
-
-    # Limit query length
-    if len(query) > 2000:
-        return False, "Query too long (max 2000 characters)."
-
-    return True, ""
-
 # Add project root to path so source imports work
 import sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -303,22 +265,19 @@ with tab_blueprints:
                 blueprint_arns = []
                 for bp_name in selected_blueprints:
                     try:
-                        # Use absolute path to avoid os.chdir()
                         bp_path = os.path.join(blueprint_dir, f"{bp_name}.json")
                         if not os.path.isfile(bp_path):
                             st.error(f"✗ {bp_name}: Blueprint file not found")
                             continue
 
-                        # Temporarily set working directory for create_custom_blueprint
-                        original_dir = os.getcwd()
-                        os.chdir(os.path.dirname(os.path.abspath(__file__)))
-                        arn = create_custom_blueprint(bp_name, st.session_state.session)
-                        os.chdir(original_dir)
+                        arn = create_custom_blueprint(
+                            bp_name,
+                            st.session_state.session,
+                            blueprint_dir=blueprint_dir,
+                        )
                         blueprint_arns.append(arn)
                         st.success(f"✓ {bp_name}")
                     except Exception as e:
-                        if original_dir:
-                            os.chdir(original_dir)
                         st.error(f"✗ {bp_name}: {e}")
 
                 if blueprint_arns:

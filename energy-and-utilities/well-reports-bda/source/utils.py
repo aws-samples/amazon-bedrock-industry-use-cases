@@ -46,6 +46,8 @@ def upload_data_to_s3(bucket_name, local_data_dir="data/reports", session=None):
 def list_s3_files(bucket, prefix, session=None):
     """List PDF files in S3 bucket with given prefix.
 
+    Uses pagination to handle buckets with more than 1000 objects.
+
     Args:
         bucket: S3 bucket name
         prefix: S3 key prefix
@@ -58,12 +60,14 @@ def list_s3_files(bucket, prefix, session=None):
         session = boto3.Session()
 
     s3 = session.client("s3")
-    response = s3.list_objects_v2(Bucket=bucket, Prefix=prefix)
-    files = [
-        obj["Key"]
-        for obj in response.get("Contents", [])
-        if obj["Key"].endswith(".pdf")
-    ]
+    files = []
+    paginator = s3.get_paginator("list_objects_v2")
+
+    for page in paginator.paginate(Bucket=bucket, Prefix=prefix):
+        for obj in page.get("Contents", []):
+            if obj["Key"].endswith(".pdf"):
+                files.append(obj["Key"])
+
     return files
 
 
