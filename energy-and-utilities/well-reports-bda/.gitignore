@@ -1,0 +1,25 @@
+# Python-generated files
+__pycache__/
+**/__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+.aws-sam
+**/*.py[oc]
+**/build/
+**/dist/
+**/wheels/
+**/*.egg-info
+
+# Virtual environments
+.venv
+.kiro
+
+data/reports/*
+
+# Test and review artifacts
+deploy_test.py
+scan-report.json
+ash.summary.txt

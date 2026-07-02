@@ -1,0 +1,142 @@
+{
+	"$schema": "http://json-schema.org/draft-07/schema#",
+	"description": "Blueprint for extracting structured data from solar panel inspection reports - demonstrates that the BDA blueprint pattern applies beyond Oil and Gas to any energy sub-vertical",
+	"class": "Inspection Report",
+	"type": "object",
+	"definitions": {
+		"SiteIdentification": {
+			"type": "object",
+			"properties": {
+				"Site_Name": {
+					"type": "string",
+					"inferenceType": "explicit",
+					"instruction": "Extract the solar farm or site name from the report header"
+				},
+				"Site_ID": {
+					"type": "string",
+					"inferenceType": "explicit",
+					"instruction": "Extract the site identifier or project number from the header"
+				},
+				"Location": {
+					"type": "string",
+					"inferenceType": "explicit",
+					"instruction": "Extract the site address or GPS coordinates from the header"
+				},
+				"Inspection_Date": {
+					"type": "string",
+					"inferenceType": "explicit",
+					"instruction": "Extract the date the inspection was performed"
+				},
+				"Inspector": {
+					"type": "string",
+					"inferenceType": "explicit",
+					"instruction": "Extract the name of the inspector or inspection company"
+				},
+				"System_Capacity_kW": {
+					"type": "number",
+					"inferenceType": "explicit",
+					"instruction": "Extract the total system capacity in kilowatts from the site summary"
+				}
+			}
+		},
+		"Panel_Condition": {
+			"type": "object",
+			"properties": {
+				"Panel_ID": {
+					"type": "string",
+					"inferenceType": "explicit",
+					"instruction": "Extract the panel or string identifier from the inspection table"
+				},
+				"Degradation_Percent": {
+					"type": "number",
+					"inferenceType": "explicit",
+					"instruction": "Extract the panel degradation percentage from the performance data"
+				},
+				"Defect_Type": {
+					"type": "string",
+					"inferenceType": "explicit",
+					"instruction": "Extract the type of defect found (hotspot, cracking, delamination, soiling, none) from the inspection findings"
+				},
+				"Severity": {
+					"type": "string",
+					"inferenceType": "explicit",
+					"instruction": "Extract the severity rating (critical, major, minor, none) from the findings table"
+				}
+			}
+		},
+		"Inverter_Status": {
+			"type": "object",
+			"properties": {
+				"Inverter_ID": {
+					"type": "string",
+					"inferenceType": "explicit",
+					"instruction": "Extract the inverter identifier from the equipment status section"
+				},
+				"Efficiency_Percent": {
+					"type": "number",
+					"inferenceType": "explicit",
+					"instruction": "Extract the inverter efficiency percentage from the performance metrics"
+				},
+				"Error_Codes": {
+					"type": "string",
+					"inferenceType": "explicit",
+					"instruction": "Extract any active error codes or fault conditions from the inverter status"
+				},
+				"Last_Service_Date": {
+					"type": "string",
+					"inferenceType": "explicit",
+					"instruction": "Extract the date of last maintenance service for this inverter"
+				}
+			}
+		},
+		"Performance_Metrics": {
+			"type": "object",
+			"properties": {
+				"Actual_Output_kWh": {
+					"type": "number",
+					"inferenceType": "explicit",
+					"instruction": "Extract the actual energy output in kWh for the reporting period"
+				},
+				"Expected_Output_kWh": {
+					"type": "number",
+					"inferenceType": "explicit",
+					"instruction": "Extract the expected or modeled energy output in kWh for the reporting period"
+				},
+				"Performance_Ratio": {
+					"type": "number",
+					"inferenceType": "explicit",
+					"instruction": "Extract the performance ratio (actual/expected) from the summary metrics"
+				},
+				"Availability_Percent": {
+					"type": "number",
+					"inferenceType": "explicit",
+					"instruction": "Extract the system availability percentage from the uptime metrics"
+				}
+			}
+		}
+	},
+	"properties": {
+		"Site_Information": {
+			"$ref": "#/definitions/SiteIdentification",
+			"instruction": "Extract all site identification and location information from the report header"
+		},
+		"Panel_Conditions": {
+			"type": "array",
+			"instruction": "Extract panel condition data for each inspected panel or string from the findings table",
+			"items": {
+				"$ref": "#/definitions/Panel_Condition"
+			}
+		},
+		"Inverter_Status": {
+			"type": "array",
+			"instruction": "Extract inverter status and performance data from the equipment section",
+			"items": {
+				"$ref": "#/definitions/Inverter_Status"
+			}
+		},
+		"Performance_Metrics": {
+			"$ref": "#/definitions/Performance_Metrics",
+			"instruction": "Extract overall site performance metrics from the summary section"
+		}
+	}
+}
