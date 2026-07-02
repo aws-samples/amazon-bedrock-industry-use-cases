@@ -143,8 +143,7 @@ If adapting this code for production use, implement the following:
 |---|---|---|
 | boto3 | 1.38.27 | AWS SDK |
 | pandas | 2.3.1 | Data manipulation |
-| s3fs | 2025.5.1 | S3 filesystem interface |
-| streamlit | 1.54.0 | Web UI framework (updated to fix CVE-2026-33682) |
+| streamlit | 1.58.0 | Web UI framework |
 
 ### Resolved Vulnerabilities
 

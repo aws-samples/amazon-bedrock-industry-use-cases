@@ -156,7 +156,7 @@ The key requirement is defining a blueprint schema that maps to your document st
 ### Installation
 
 ```bash
-pip install boto3>=1.38.27 pandas>=2.3.1 s3fs==2025.5.1 streamlit>=1.45.0
+pip install boto3>=1.38.27 pandas>=2.3.1 streamlit>=1.58.0
 ```
 
 Or using the requirements file:

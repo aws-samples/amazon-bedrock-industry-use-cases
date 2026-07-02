@@ -187,15 +187,14 @@ def normalize_operator2_result(data: dict) -> dict:
 
 def consolidate_results(
     results: List[dict],
-    operator_map: Optional[Dict[str, str]] = None,
 ) -> dict:
     """
     Consolidate multiple extraction results into unified DataFrames.
 
+    Auto-detects operator format based on field names in the extraction output.
+
     Args:
         results: List of BDA custom output dictionaries
-        operator_map: Optional mapping of file names to operator type
-                      ("operator1" or "operator2"). If None, auto-detects.
 
     Returns:
         Dictionary with unified DataFrames:
